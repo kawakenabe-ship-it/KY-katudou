@@ -391,6 +391,7 @@
   body.pdf-rendering .signature-wrapper { border: 1px solid #000 !important; }
   body.pdf-rendering .signature-canvas { height: 60px !important; }
   body.pdf-rendering .signature-clear-btn { display: none !important; }
+  body.pdf-rendering .signature-eraser-btn { display: none !important; }
   body.pdf-rendering .signature-hint { display: none !important; }
 
   /* 印刷 */
@@ -461,6 +462,7 @@
     /* 印刷時のサイン欄 */
     .signature-wrapper { border: 1px solid #000 !important; }
     .signature-clear-btn { display: none !important; }
+    .signature-eraser-btn { display: none !important; }
     .signature-hint { display: none !important; }
 
     @page { size: A4 landscape; margin: 4mm; }
@@ -540,6 +542,34 @@
   }
   .signature-clear-btn:hover { background: #a01818; }
   .signature-clear-btn:active { background: #7a1010; }
+  /* 消しゴム切り替えボタン */
+  .signature-eraser-btn {
+    position: absolute;
+    top: 6px;
+    right: 86px;
+    background: #fff;
+    color: #000;
+    border: 1.5px solid #000;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    border-radius: 3px;
+    min-height: 32px;
+    z-index: 2;
+  }
+  .signature-eraser-btn:hover { background: #f0f0f0; }
+  .signature-eraser-btn.active {
+    background: #1565c0;
+    color: #fff;
+    border-color: #0d47a1;
+  }
+  .signature-eraser-btn.active:hover { background: #0d47a1; }
+  /* 消しゴムモード時のキャンバスカーソル */
+  .signature-canvas.eraser-mode {
+    cursor: cell;
+  }
   .signature-hint {
     position: absolute;
     left: 10px;
@@ -600,6 +630,7 @@
       <td colspan="5" class="signature-cell">
         <div class="signature-wrapper">
           <canvas id="signature-canvas" class="signature-canvas"></canvas>
+          <button type="button" class="signature-eraser-btn" id="signature-eraser-btn" onclick="toggleEraser()">消しゴム</button>
           <button type="button" class="signature-clear-btn" onclick="clearSignature()">書直す</button>
           <span class="signature-hint" id="signature-hint">ここに参加者全員が順番に手書きでサインしてください</span>
         </div>
@@ -1005,6 +1036,8 @@
   let sigDrawing = false;
   let sigLastX = 0, sigLastY = 0;
   let sigHasInk = false;
+  let sigEraserMode = false;     // 消しゴムモードのON/OFF
+  const ERASER_SIZE = 20;        // 消しゴムのサイズ（px）
 
   function initSignature() {
     sigCanvas = document.getElementById('signature-canvas');
@@ -1064,24 +1097,58 @@
     const pos = getSigPos(e);
     sigLastX = pos.x;
     sigLastY = pos.y;
-    // 点を打つ（タップだけでも見えるように）
-    sigCtx.beginPath();
-    sigCtx.arc(pos.x, pos.y, 1, 0, Math.PI * 2);
-    sigCtx.fillStyle = '#000';
-    sigCtx.fill();
-    hideSigHint();
-    sigHasInk = true;
+    if (sigEraserMode) {
+      // 消しゴム：その地点を消す
+      eraseAt(pos.x, pos.y);
+    } else {
+      // ペン：点を打つ（タップだけでも見えるように）
+      sigCtx.beginPath();
+      sigCtx.arc(pos.x, pos.y, 1, 0, Math.PI * 2);
+      sigCtx.fillStyle = '#000';
+      sigCtx.fill();
+      hideSigHint();
+      sigHasInk = true;
+    }
   }
 
   function sigDraw(e) {
     if (!sigDrawing) return;
     const pos = getSigPos(e);
-    sigCtx.beginPath();
-    sigCtx.moveTo(sigLastX, sigLastY);
-    sigCtx.lineTo(pos.x, pos.y);
-    sigCtx.stroke();
+    if (sigEraserMode) {
+      // 消しゴム：始点〜終点の線分上を消す（飛び石にならないように補間）
+      eraseLine(sigLastX, sigLastY, pos.x, pos.y);
+    } else {
+      // ペン：線を引く
+      sigCtx.beginPath();
+      sigCtx.moveTo(sigLastX, sigLastY);
+      sigCtx.lineTo(pos.x, pos.y);
+      sigCtx.stroke();
+    }
     sigLastX = pos.x;
     sigLastY = pos.y;
+  }
+
+  // 指定座標を中心に円形に消去
+  function eraseAt(x, y) {
+    sigCtx.save();
+    sigCtx.globalCompositeOperation = 'destination-out';
+    sigCtx.beginPath();
+    sigCtx.arc(x, y, ERASER_SIZE / 2, 0, Math.PI * 2);
+    sigCtx.fill();
+    sigCtx.restore();
+  }
+
+  // 線分上を連続して消去（マウスを速く動かしても隙間ができないように）
+  function eraseLine(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const step = Math.max(1, ERASER_SIZE / 4);
+    const steps = Math.max(1, Math.ceil(dist / step));
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      eraseAt(x1 + dx * t, y1 + dy * t);
+    }
   }
 
   function sigEnd() {
@@ -1116,7 +1183,24 @@
     sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
     sigHasInk = false;
     showSigHint();
+    // 消しゴムモードもOFFに戻す
+    if (sigEraserMode) toggleEraser();
     showStatus('サインを消去しました');
+  }
+
+  // 消しゴムモードのON/OFF切り替え
+  function toggleEraser() {
+    sigEraserMode = !sigEraserMode;
+    const btn = document.getElementById('signature-eraser-btn');
+    if (sigEraserMode) {
+      btn.classList.add('active');
+      btn.textContent = '✏️ ペンに戻す';
+      sigCanvas.classList.add('eraser-mode');
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = '消しゴム';
+      sigCanvas.classList.remove('eraser-mode');
+    }
   }
 
   function getSignatureDataUrl() {
