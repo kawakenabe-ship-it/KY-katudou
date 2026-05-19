@@ -3,182 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KY活動表（危険予知活動）</title>
+    <title>KY活動表</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        /* 元のKY活動表の標準的なデザイン・形を維持 */
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f7f9fa;
+            font-family: "MS Gothic", "Medium Gothic", sans-serif;
+            margin: 10px;
+            padding: 10px;
+            background-color: #ffffff;
         }
-        .container {
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .ky-container {
+            max-width: 950px;
+            margin: 0 auto;
+            border: 2px solid #000;
+            padding: 15px;
         }
-        h1 {
+        .ky-title {
             text-align: center;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        label {
-            display: block;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 5px;
-        }
-        input[type="text"], input[type="date"], textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px double #000;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            background: #fff;
+            margin-bottom: 10px;
         }
         th, td {
-            border: 1px solid #bdc3c7;
-            padding: 10px;
-            text-align: left;
+            border: 1px solid #000;
+            padding: 6px;
+            font-size: 14px;
+            vertical-align: middle;
         }
         th {
-            background-color: #ecf0f1;
+            background-color: #e6e6e6;
+            text-align: center;
         }
-        .btn-group {
-            margin: 20px 0;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        button {
-            padding: 10px 20px;
+        input[type="text"], input[type="date"], textarea {
+            width: 100%;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            box-sizing: border-box;
+            font-size: 14px;
+            padding: 4px;
+            background: transparent;
+            font-family: inherit;
+        }
+        textarea {
+            resize: none;
+        }
+        /* 入力中をわかりやすくするための枠（印刷時には消えます） */
+        input:focus, textarea:focus {
+            outline: 1px solid #0078d7;
+            background-color: #f0f7ff;
+        }
+
+        /* 手書きサイン欄の形 */
+        .signature-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #000;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .signature-title {
+            font-size: 14px;
             font-weight: bold;
-            transition: background 0.2s;
+            width: 120px;
+            text-align: center;
         }
-        .btn-primary { background-color: #3498db; color: white; }
-        .btn-primary:hover { background-color: #2980b9; }
-        .btn-success { background-color: #2ecc71; color: white; }
-        .btn-success:hover { background-color: #27ae60; }
-        .btn-danger { background-color: #e74c3c; color: white; }
-        .btn-danger:hover { background-color: #c0392b; }
-        
-        /* サインエリアのスタイル */
-        .signature-container {
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px dashed #3498db;
-            border-radius: 6px;
-            background-color: #fafbfc;
-        }
-        .canvas-wrapper {
-            margin: 10px 0;
+        .canvas-area {
+            flex-grow: 1;
+            text-align: center;
         }
         canvas {
-            border: 1px solid #7f8c8d;
+            border: 1px dashed #999;
             background-color: #fff;
             cursor: crosshair;
-            touch-action: none; /* スマホでのスクロール防止 */
-            max-width: 100%;
+            touch-action: none; /* スマホ・ペンでのスクロール防止 */
         }
-        
-        /* PDF出力時にボタン非表示にする設定 */
+
+        /* ボタンエリア（印刷・PDF化のときは自動で非表示になります） */
+        .control-panel {
+            max-width: 950px;
+            margin: 15px auto 0 auto;
+            text-align: center;
+        }
+        .btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 10px;
+            border: 1px solid #333;
+        }
+        .btn-pdf { background-color: #4caf50; color: white; }
+        .btn-pdf:hover { background-color: #45a049; }
+        .btn-clear { background-color: #f44336; color: white; }
+        .btn-clear:hover { background-color: #da190b; }
+        .btn-action { background-color: #008cba; color: white; }
+
+        /* PDF・印刷時の設定（ボタン類を隠す） */
         @media print {
-            .no-print { display: none !important; }
+            .no-print {
+                display: none !important;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .ky-container {
+                border: 2px solid #000 !important;
+            }
+            canvas {
+                border: none !important; /* 印刷時はキャンバスの破線を消す */
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container" id="ky-form-area">
-    <h1>危険予知（KY）活動表</h1>
+<div class="ky-container" id="ky-pdf-target">
+    <div class="ky-title">危険予知（KY）活動表</div>
 
-    <div class="section">
-        <table style="width:100%;">
+    <table>
+        <tr>
+            <th style="width: 12%;">動 作 日</th>
+            <td style="width: 23%;"><input type="date" id="ky-date"></td>
+            <th style="width: 12%;">所 属</th>
+            <td style="width: 23%;"><input type="text" id="ky-dept" placeholder="〇〇班"></td>
+            <th style="width: 12%;">指揮者</th>
+            <td style="width: 18%;"><input type="text" id="ky-leader" placeholder="氏名"></td>
+        </tr>
+        <tr>
+            <th>作業場所</th>
+            <td colspan="3"><input type="text" id="ky-location" placeholder="作業場所を入力"></td>
+            <th>天 候</th>
+            <td><input type="text" id="ky-weather" placeholder="晴れ"></td>
+        </tr>
+        <tr>
+            <th>作業時期</th>
+            <td colspan="5"><input type="text" id="ky-time" placeholder="〇〇時〜〇〇時"></td>
+        </tr>
+        <tr>
+            <th>作業内容</th>
+            <td colspan="5"><input type="text" id="ky-work" placeholder="本日の作業内容を入力"></td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <th style="width: 15%;">作業従事者<br>（名簿）</th>
+            <td>
+                <textarea id="ky-members" rows="3" placeholder="参加者の氏名を記入（改行またはカンマ区切り）"></textarea>
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
             <tr>
-                <th>日付</th>
-                <td><input type="date" id="ky-date"></td>
-                <th>作業指揮者</th>
-                <td><input type="text" id="ky-leader" placeholder="氏名を入力"></td>
+                <th style="width: 5%; font-size: 12px;">番号</th>
+                <th style="width: 47.5%;">潜在する危険要因（どんな災害が起きるか）</th>
+                <th style="width: 47.5%;">私たちの行動目標（私たちはこうする）</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: center;">1</td>
+                <td><textarea id="danger-1" rows="4" placeholder="例：足場が濡れており、滑って転落する"></textarea></td>
+                <td><textarea id="measure-1" rows="4" placeholder="例：足元の清掃を徹底し、安全帯を確実に使用する"></textarea></td>
             </tr>
             <tr>
-                <th>作業内容</th>
-                <td colspan="3"><input type="text" id="ky-work-title" placeholder="本日の作業内容"></td>
+                <td style="text-align: center;">2</td>
+                <td><textarea id="danger-2" rows="4" placeholder="例：重機の旋回時に吊り荷と衝突する"></textarea></td>
+                <td><textarea id="measure-2" rows="4" placeholder="例：立入禁止区域を明示し、合図を徹底する"></textarea></td>
             </tr>
-        </table>
-    </div>
+            <tr>
+                <td style="text-align: center;">3</td>
+                <td><textarea id="danger-3" rows="4"></textarea></td>
+                <td><textarea id="measure-3" rows="4"></textarea></td>
+            </tr>
+        </tbody>
+    </table>
 
-    <div class="section">
-        <h3>■ 作業従事者名簿</h3>
-        <textarea id="ky-members" rows="3" placeholder="参加者の氏名をカンマ区切り、または改行で入力してください"></textarea>
-    </div>
-
-    <div class="section">
-        <h3>■ 危険の予測と対策</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 50%;">潜在する危険要因（どんな災害が起きるか）</th>
-                    <th style="width: 50%;">私たちの行動目標（私たちはこうする）</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><textarea id="danger-1" rows="3" placeholder="例: 足場が濡れており、滑って転落する恐れがある"></textarea></td>
-                    <td><textarea id="measure-1" rows="3" placeholder="例: 足元の清掃を徹底し、安全帯を必ず使用する"></textarea></td>
-                </tr>
-                <tr>
-                    <td><textarea id="danger-2" rows="3" placeholder="例: クレーン旋回時に吊り荷と激突する"></textarea></td>
-                    <td><textarea id="measure-2" rows="3" placeholder="例: 旋回範囲内への立ち入りを禁止し、合図を徹底する"></textarea></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section signature-container">
-        <h3>■ 確認者・指揮者サイン</h3>
-        <p style="font-size: 0.9em; color: #666; margin: 0 0 10px 0;">タッチペン、指、またはマウスで枠内に署名してください。</p>
-        <div class="canvas-wrapper">
-            <canvas id="signature-canvas" width="600" height="150"></canvas>
+    <div class="signature-box">
+        <div class="signature-title">作業指揮者<br>確認サイン</div>
+        <div class="canvas-area">
+            <canvas id="signature-canvas" width="650" height="120"></canvas>
         </div>
-        <div class="btn-group no-print">
-            <button type="button" id="clear-btn" class="btn-danger">サインをクリア</button>
+        <div class="no-print" style="width: 100px; text-align: center;">
+            <button type="button" id="clear-btn" class="btn btn-clear" style="padding: 5px 10px; font-size: 12px; margin: 0;">書直す</button>
         </div>
     </div>
+</div>
 
-    <div class="btn-group no-print">
-        <button type="button" id="pdf-btn" class="btn-success" style="font-size: 1.1em; padding: 12px 25px;">📄 PDF形式で保存（ダウンロード）</button>
-        <button type="button" id="save-data-btn" class="btn-primary">ブラウザに一時保存</button>
-        <button type="button" id="load-data-btn" class="btn-primary">一時保存から読込</button>
-    </div>
+<div class="control-panel no-print">
+    <button type="button" id="pdf-btn" class="btn btn-pdf">📄 PDF形式で保存（ダウンロード）</button>
+    <button type="button" id="save-btn" class="btn btn-action">ブラウザに一時保存</button>
+    <button type="button" id="load-btn" class="btn btn-action">一時保存から読込</button>
 </div>
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
-        // --- 1. 手書きサイン機能の制御 ---
+        // --- 1. 手書きサイン（キャンバス）のコントロール ---
         const canvas = document.getElementById('signature-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
         ctx.lineWidth = 3;         // 線の太さ
         ctx.lineCap = 'round';     // 線の角を丸く
-        ctx.strokeStyle = '#000';  // 線の色
+        ctx.strokeStyle = '#000000'; // 黒色
 
-        // 座標取得関数（PC/スマホ両対応）
+        // 座標取得（PCマウス・スマホタッチ対応）
         function getEventPos(e) {
             const rect = canvas.getBoundingClientRect();
             if (e.touches && e.touches.length > 0) {
@@ -214,82 +257,91 @@
             isDrawing = false;
         }
 
-        // マウスイベント (PC)
+        // マウス操作
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         window.addEventListener('mouseup', stopDrawing);
 
-        // タッチイベント (スマホ・タブレット・タッチペン)
+        // タッチ・ペン操作
         canvas.addEventListener('touchstart', startDrawing, { passive: false });
         canvas.addEventListener('touchmove', draw, { passive: false });
         canvas.addEventListener('touchend', stopDrawing);
 
-        // サインクリア機能
+        // 書直し（クリア）ボタン
         document.getElementById('clear-btn').addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
 
-        // --- 2. PDF保存機能（html2pdf.js） ---
+        // --- 2. PDF保存機能 ---
         document.getElementById('pdf-btn').addEventListener('click', () => {
-            const element = document.getElementById('ky-form-area');
+            const element = document.getElementById('ky-pdf-target');
             
-            // 操作ボタンなどを一時的に隠してPDF化するオプション
             const opt = {
                 margin:       10,
                 filename:     'KY活動表.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4縦サイズ
             };
 
-            // PDF生成を実行
+            // PDFダウンロード実行
             html2pdf().set(opt).from(element).save();
         });
 
 
-        // --- 3. ブラウザへのテキスト一時保存・読込機能（LocalStorage） ---
-        document.getElementById('save-data-btn').addEventListener('click', () => {
+        // --- 3. ブラウザ一時保存・読込（LocalStorage） ---
+        document.getElementById('save-btn').addEventListener('click', () => {
             const kyData = {
                 date: document.getElementById('ky-date').value,
+                dept: document.getElementById('ky-dept').value,
                 leader: document.getElementById('ky-leader').value,
-                workTitle: document.getElementById('ky-work-title').value,
+                location: document.getElementById('ky-location').value,
+                weather: document.getElementById('ky-weather').value,
+                time: document.getElementById('ky-time').value,
+                work: document.getElementById('ky-work').value,
                 members: document.getElementById('ky-members').value,
                 danger1: document.getElementById('danger-1').value,
                 measure1: document.getElementById('measure-1').value,
                 danger2: document.getElementById('danger-2').value,
                 measure2: document.getElementById('measure-2').value,
-                // サインも画像化してデータ保存
-                signature: canvas.toDataURL()
+                danger3: document.getElementById('danger-3').value,
+                measure3: document.getElementById('measure-3').value,
+                signature: canvas.toDataURL() // サインもデータ化
             };
-            localStorage.setItem('ky_activity_data', JSON.stringify(kyData));
-            alert('ブラウザにデータを一時保存しました。');
+            localStorage.setItem('ky_table_form_data', JSON.stringify(kyData));
+            alert('現在の入力内容とサインを一時保存しました。');
         });
 
-        document.getElementById('load-data-btn').addEventListener('click', () => {
-            const savedData = localStorage.getItem('ky_activity_data');
-            if (!savedData) {
-                alert('保存されたデータが見つかりません。');
+        document.getElementById('load-btn').addEventListener('click', () => {
+            const saved = localStorage.getItem('ky_table_form_data');
+            if (!saved) {
+                alert('保存されたデータがありません。');
                 return;
             }
-            const kyData = JSON.parse(savedData);
-            document.getElementById('ky-date').value = kyData.date || '';
-            document.getElementById('ky-leader').value = kyData.leader || '';
-            document.getElementById('ky-work-title').value = kyData.workTitle || '';
-            document.getElementById('ky-members').value = kyData.members || '';
-            document.getElementById('danger-1').value = kyData.danger1 || '';
-            document.getElementById('measure-1').value = kyData.measure1 || '';
-            document.getElementById('danger-2').value = kyData.danger2 || '';
-            document.getElementById('measure-2').value = kyData.measure2 || '';
+            const data = JSON.parse(saved);
+            document.getElementById('ky-date').value = data.date || '';
+            document.getElementById('ky-dept').value = data.dept || '';
+            document.getElementById('ky-leader').value = data.leader || '';
+            document.getElementById('ky-location').value = data.location || '';
+            document.getElementById('ky-weather').value = data.weather || '';
+            document.getElementById('ky-time').value = data.time || '';
+            document.getElementById('ky-work').value = data.work || '';
+            document.getElementById('ky-members').value = data.members || '';
+            document.getElementById('danger-1').value = data.danger1 || '';
+            document.getElementById('measure-1').value = data.measure1 || '';
+            document.getElementById('danger-2').value = data.danger2 || '';
+            document.getElementById('measure-2').value = data.measure2 || '';
+            document.getElementById('danger-3').value = data.danger3 || '';
+            document.getElementById('measure-3').value = data.measure3 || '';
             
-            // サインの復元
-            if (kyData.signature) {
+            if (data.signature) {
                 const img = new Image();
                 img.onload = function() {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
                 };
-                img.src = kyData.signature;
+                img.src = data.signature;
             }
             alert('データを読み込みました。');
         });
