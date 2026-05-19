@@ -1,352 +1,1290 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KY活動表</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        /* 元のKY活動表の標準的なデザイン・形を維持 */
-        body {
-            font-family: "MS Gothic", "Medium Gothic", sans-serif;
-            margin: 10px;
-            padding: 10px;
-            background-color: #ffffff;
-        }
-        .ky-container {
-            max-width: 950px;
-            margin: 0 auto;
-            border: 2px solid #000;
-            padding: 15px;
-        }
-        .ky-title {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 5px;
-            margin-bottom: 15px;
-            padding-bottom: 5px;
-            border-bottom: 2px double #000;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 6px;
-            font-size: 14px;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #e6e6e6;
-            text-align: center;
-        }
-        input[type="text"], input[type="date"], textarea {
-            width: 100%;
-            border: none;
-            box-sizing: border-box;
-            font-size: 14px;
-            padding: 4px;
-            background: transparent;
-            font-family: inherit;
-        }
-        textarea {
-            resize: none;
-        }
-        /* 入力中をわかりやすくするための枠（印刷時には消えます） */
-        input:focus, textarea:focus {
-            outline: 1px solid #0078d7;
-            background-color: #f0f7ff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>危険予知活動表</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #000;
+    --line: #000;
+    --bg: #fff;
+    --hover: #fffbe6;
+  }
 
-        /* 手書きサイン欄の形 */
-        .signature-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid #000;
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #fff;
-        }
-        .signature-title {
-            font-size: 14px;
-            font-weight: bold;
-            width: 120px;
-            text-align: center;
-        }
-        .canvas-area {
-            flex-grow: 1;
-            text-align: center;
-        }
-        canvas {
-            border: 1px dashed #999;
-            background-color: #fff;
-            cursor: crosshair;
-            touch-action: none; /* スマホ・ペンでのスクロール防止 */
-        }
+  * { box-sizing: border-box; }
 
-        /* ボタンエリア（印刷・PDF化のときは自動で非表示になります） */
-        .control-panel {
-            max-width: 950px;
-            margin: 15px auto 0 auto;
-            text-align: center;
-        }
-        .btn {
-            padding: 10px 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            margin: 0 10px;
-            border: 1px solid #333;
-        }
-        .btn-pdf { background-color: #4caf50; color: white; }
-        .btn-pdf:hover { background-color: #45a049; }
-        .btn-clear { background-color: #f44336; color: white; }
-        .btn-clear:hover { background-color: #da190b; }
-        .btn-action { background-color: #008cba; color: white; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #e8e8e8;
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "MS PGothic", "Meiryo", sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-text-size-adjust: 100%;
+  }
 
-        /* PDF・印刷時の設定（ボタン類を隠す） */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            .ky-container {
-                border: 2px solid #000 !important;
-            }
-            canvas {
-                border: none !important; /* 印刷時はキャンバスの破線を消す */
-            }
-        }
-    </style>
+  .toolbar {
+    position: sticky;
+    top: 0;
+    background: #333;
+    color: #fff;
+    padding: 8px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    z-index: 100;
+  }
+
+  .toolbar-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-right: auto;
+  }
+
+  .toolbar button {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 40px;
+    font-family: inherit;
+  }
+  .toolbar button:active { background: #ddd; }
+  .toolbar button.share-btn {
+    background: #0e7a3a;
+    color: #fff;
+    border-color: #0a5a2a;
+  }
+  .toolbar button.share-btn:hover { background: #0a5a2a; }
+  .toolbar button.share-btn:active { background: #084820; }
+
+  .sheet {
+    max-width: 1180px;
+    margin: 16px auto;
+    background: var(--bg);
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .form-tag {
+    text-align: right;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  /* タイトル行 */
+  .title-row {
+    border: 1.5px solid var(--line);
+    padding: 8px 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .title-row .date-grp {
+    display: inline-flex;
+    align-items: baseline;
+    font-size: 20px;
+    letter-spacing: 0;
+    margin-right: 1.5em;
+  }
+
+  .title-row input.date-picker {
+    border: 1px solid #888;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 4px 6px;
+    background: #f7f7f7;
+    margin-right: 8px;
+    cursor: pointer;
+    min-height: 36px;
+  }
+  .title-row input.date-picker:focus { outline: none; background: var(--hover); border-color: #000; }
+  .title-row .date-display {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0;
+    min-width: 110px;
+    text-align: left;
+  }
+
+  /* 工事名 */
+  .project-row {
+    border: 1.5px solid var(--line);
+    border-top: none;
+    padding: 8px 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .project-row input {
+    width: 100%;
+    border: none;
+    text-align: center;
+    font-weight: 700;
+    font-size: 18px;
+    font-family: inherit;
+    background: transparent;
+  }
+  .project-row input:focus { outline: none; background: var(--hover); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: -1.5px;
+  }
+
+  th, td {
+    border: 1.5px solid var(--line);
+    padding: 4px 6px;
+    vertical-align: middle;
+    text-align: center;
+    background: #fff;
+  }
+
+  th {
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* 会社情報テーブル */
+  .info-table th {
+    width: 8%;
+    letter-spacing: 0.3em;
+    text-align: center;
+  }
+  .info-table td {
+    text-align: left;
+  }
+  .info-table .label-sm {
+    letter-spacing: 0.1em;
+    font-size: 12px;
+  }
+
+  /* 入力フィールド共通 */
+  input[type="text"], textarea, select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 4px 6px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    min-height: 32px;
+  }
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    background: var(--hover);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 40px;
+    line-height: 1.4;
+  }
+
+  /* リスクテーブル */
+  .risk-table th {
+    font-size: 13px;
+    padding: 6px 4px;
+  }
+  .risk-table .h-big {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .risk-table .h-small {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .risk-table td {
+    padding: 2px;
+    height: 50px;
+  }
+  .risk-table td.danger-cell,
+  .risk-table td.measure-cell {
+    text-align: left;
+    width: 22%;
+  }
+  .risk-table td.qual-cell,
+  .risk-table td.name-cell {
+    text-align: left;
+    width: 11%;
+  }
+  .risk-table .score-cell {
+    width: 5%;
+  }
+  .risk-table select {
+    text-align: center;
+    text-align-last: center;
+    padding: 2px;
+    font-size: 13px;
+  }
+  /* プリセット選択プルダウン（危険ポイント・対策セル内） */
+  .risk-table select.preset-select {
+    width: 100%;
+    text-align: left;
+    text-align-last: left;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 6px;
+    margin-bottom: 3px;
+    border: 1.5px solid #d97706;
+    background: #fff3cd;
+    color: #92400e;
+    min-height: 30px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .risk-table select.preset-select:hover {
+    background: #ffe69c;
+    border-color: #92400e;
+    color: #000;
+  }
+  .risk-table select.preset-select:focus {
+    outline: none;
+    background: var(--hover);
+    border-color: #000;
+  }
+  .risk-result {
+    font-weight: 700;
+    font-size: 14px;
+    pointer-events: none;
+    text-align: center;
+  }
+
+  /* 確認点検（リスク表の右側に重なる） */
+  .check-section {
+    margin-top: 8px;
+  }
+  .check-table th {
+    font-size: 13px;
+  }
+  .check-table td.check-label {
+    text-align: left;
+    font-size: 13px;
+  }
+  .check-table td.check-box {
+    width: 80px;
+    cursor: pointer;
+    font-size: 20px;
+    user-select: none;
+    height: 36px;
+  }
+  .check-table td.check-box.checked {
+    font-weight: 700;
+  }
+  .check-table td.check-box:hover {
+    background: var(--hover);
+  }
+
+  /* 凡例（重大性・可能性・リスクランク） */
+  .legend {
+    margin-top: 8px;
+  }
+  .legend table {
+    width: 100%;
+  }
+  .legend th, .legend td {
+    font-size: 12px;
+    padding: 3px 6px;
+    text-align: left;
+  }
+  .legend th {
+    font-weight: 700;
+  }
+  .legend .score-col {
+    width: 90px;
+    text-align: center;
+  }
+  .legend .head-row th {
+    text-align: center;
+    background: #fff;
+  }
+  .legend .section-title {
+    font-size: 12px;
+    text-align: left;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-bottom: none;
+    padding: 3px 6px;
+    font-weight: 700;
+  }
+
+  /* フッター */
+  .footer-table td {
+    text-align: left;
+    height: 60px;
+  }
+  .footer-table th {
+    width: 15%;
+  }
+
+  /* 印刷・PDF生成時の共通スタイル */
+  .pdf-rendering body,
+  body.pdf-rendering { background: #fff; font-size: 8.5px; line-height: 1.2; }
+  body.pdf-rendering .toolbar { display: none; }
+  body.pdf-rendering .status-msg { display: none !important; }
+  body.pdf-rendering .sheet {
+    box-shadow: none;
+    margin: 0;
+    /* A4横の比率(297:210)を維持してCanvasキャプチャ */
+    width: 1188px;
+    max-width: 1188px;
+    height: 840px;
+    max-height: 840px;
+    padding: 8px 12px;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  body.pdf-rendering input,
+  body.pdf-rendering textarea,
+  body.pdf-rendering select {
+    background: transparent !important;
+    color: #000 !important;
+    font-size: 9px !important;
+    min-height: 0 !important;
+    padding: 1px 2px !important;
+  }
+  body.pdf-rendering textarea { line-height: 1.15 !important; }
+  body.pdf-rendering .risk-table select.preset-select { display: none !important; }
+  body.pdf-rendering .title-row input.date-picker { display: none !important; }
+  body.pdf-rendering .form-tag { font-size: 9px; margin-bottom: 1px; }
+  body.pdf-rendering .title-row { font-size: 16px; letter-spacing: 0.4em; padding: 2px 6px; }
+  body.pdf-rendering .title-row .date-grp { font-size: 13px; }
+  body.pdf-rendering .title-row .date-display { font-size: 13px; min-width: 70px; }
+  body.pdf-rendering .project-row { font-size: 13px; padding: 2px 6px; }
+  body.pdf-rendering .project-row input { font-size: 13px !important; }
+  body.pdf-rendering th,
+  body.pdf-rendering td { padding: 1px 3px !important; }
+  body.pdf-rendering .info-table th,
+  body.pdf-rendering .info-table td { font-size: 9px; }
+  body.pdf-rendering .risk-table th { font-size: 9px; padding: 2px !important; }
+  body.pdf-rendering .risk-table .h-big { font-size: 10px; }
+  body.pdf-rendering .risk-table .h-small { font-size: 8.5px; }
+  body.pdf-rendering .risk-table td { height: 28px !important; padding: 1px !important; }
+  body.pdf-rendering .risk-result { font-size: 10px !important; }
+  body.pdf-rendering .check-section { margin-top: 2px; }
+  body.pdf-rendering .check-table td.check-label { font-size: 9px; }
+  body.pdf-rendering .check-table td.check-box { font-size: 12px; height: 18px !important; }
+  body.pdf-rendering .legend { margin-top: 2px; }
+  body.pdf-rendering .legend th,
+  body.pdf-rendering .legend td { font-size: 8px; padding: 1px 4px !important; }
+  body.pdf-rendering .legend .section-title { font-size: 8.5px; padding: 1px 4px; }
+  body.pdf-rendering .footer-table { margin-top: 2px !important; }
+  body.pdf-rendering .footer-table td { height: 36px !important; }
+  body.pdf-rendering .signature-wrapper { border: 1px solid #000 !important; }
+  body.pdf-rendering .signature-canvas { height: 60px !important; }
+  body.pdf-rendering .signature-clear-btn { display: none !important; }
+  body.pdf-rendering .signature-hint { display: none !important; }
+
+  /* 印刷 */
+  @media print {
+    body { background: #fff; font-size: 8.5px; line-height: 1.2; }
+    .toolbar { display: none; }
+    .status-msg { display: none !important; }
+    .sheet {
+      box-shadow: none;
+      margin: 0;
+      max-width: none;
+      width: 100%;
+      padding: 2mm 3mm;
+    }
+    input, textarea, select {
+      background: transparent !important;
+      color: #000 !important;
+      font-size: 9px !important;
+      min-height: 0 !important;
+      padding: 1px 2px !important;
+    }
+    textarea { line-height: 1.15 !important; }
+    input:focus, textarea:focus, select:focus { background: transparent !important; }
+
+    /* プリセット選択は印刷で非表示 */
+    .risk-table select.preset-select { display: none !important; }
+    /* 日付ピッカーは印刷時非表示、表示用テキストのみ */
+    .title-row input.date-picker { display: none !important; }
+
+    /* ヘッダ周り圧縮 */
+    .form-tag { font-size: 9px; margin-bottom: 1px; }
+    .title-row { font-size: 16px; letter-spacing: 0.4em; padding: 2px 6px; }
+    .title-row .date-grp { font-size: 13px; }
+    .title-row .date-display { font-size: 13px; min-width: 70px; }
+    .project-row { font-size: 13px; padding: 2px 6px; }
+    .project-row input { font-size: 13px !important; }
+
+    /* テーブル全般 */
+    th, td { padding: 1px 3px !important; }
+    .info-table th, .info-table td { font-size: 9px; }
+
+    /* リスク表 */
+    .risk-table th { font-size: 9px; padding: 2px !important; }
+    .risk-table .h-big { font-size: 10px; }
+    .risk-table .h-small { font-size: 8.5px; }
+    .risk-table td { height: 28px !important; padding: 1px !important; }
+    .risk-result { font-size: 10px !important; }
+
+    /* 確認点検 */
+    .check-section { margin-top: 2px; }
+    .check-table td.check-label { font-size: 9px; }
+    .check-table td.check-box { font-size: 12px; height: 18px !important; }
+
+    /* 凡例 */
+    .legend { margin-top: 2px; }
+    .legend th, .legend td { font-size: 8px; padding: 1px 4px !important; }
+    .legend .section-title { font-size: 8.5px; padding: 1px 4px; }
+
+    /* フッター */
+    .footer-table td { height: 36px !important; }
+
+    /* 改ページ禁止 */
+    .sheet, table, tr, .legend, .check-section, .footer-table {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* 印刷時のサイン欄 */
+    .signature-wrapper { border: 1px solid #000 !important; }
+    .signature-clear-btn { display: none !important; }
+    .signature-hint { display: none !important; }
+
+    @page { size: A4 landscape; margin: 4mm; }
+  }
+
+  /* モバイル */
+  @media (max-width: 700px) {
+    .toolbar-title { width: 100%; }
+    .toolbar button { flex: 1; font-size: 12px; padding: 6px 8px; }
+    .sheet { padding: 8px; margin: 4px; }
+    .title-row { font-size: 16px; letter-spacing: 0.3em; padding: 6px; flex-wrap: wrap; }
+    .title-row .date-grp { font-size: 14px; margin-right: 8px; }
+    .title-row input.date-picker { font-size: 14px; min-height: 34px; }
+    .title-row .date-display { font-size: 16px; min-width: 90px; }
+    .project-row { font-size: 14px; padding: 6px; }
+    .project-row input { font-size: 14px; }
+    th, td { padding: 3px 2px; font-size: 11px; }
+    .risk-table .h-big { font-size: 13px; }
+    .risk-table td { height: 40px; }
+    .info-table th { letter-spacing: 0.1em; font-size: 11px; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    input, select, textarea { font-size: 16px !important; }
+  }
+
+  .status-msg {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #000;
+    color: #fff;
+    padding: 10px 18px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 200;
+    pointer-events: none;
+  }
+  .status-msg.show { opacity: 1; }
+
+  /* 参加者欄（手書きサイン） */
+  .signature-cell {
+    padding: 4px !important;
+  }
+  .signature-wrapper {
+    position: relative;
+    width: 100%;
+    background: #fff;
+    border: 1.5px dashed #888;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .signature-canvas {
+    display: block;
+    width: 100%;
+    height: 140px;
+    background: #fff;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .signature-clear-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #c62828;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    border-radius: 3px;
+    min-height: 32px;
+    z-index: 2;
+  }
+  .signature-clear-btn:hover { background: #a01818; }
+  .signature-clear-btn:active { background: #7a1010; }
+  .signature-hint {
+    position: absolute;
+    left: 10px;
+    bottom: 6px;
+    font-size: 11px;
+    color: #999;
+    pointer-events: none;
+    user-select: none;
+  }
+  .signature-hint.hidden { display: none; }
+</style>
 </head>
 <body>
 
-<div class="ky-container" id="ky-pdf-target">
-    <div class="ky-title">危険予知（KY）活動表</div>
-
-    <table>
-        <tr>
-            <th style="width: 12%;">動 作 日</th>
-            <td style="width: 23%;"><input type="date" id="ky-date"></td>
-            <th style="width: 12%;">所 属</th>
-            <td style="width: 23%;"><input type="text" id="ky-dept" placeholder="〇〇班"></td>
-            <th style="width: 12%;">指揮者</th>
-            <td style="width: 18%;"><input type="text" id="ky-leader" placeholder="氏名"></td>
-        </tr>
-        <tr>
-            <th>作業場所</th>
-            <td colspan="3"><input type="text" id="ky-location" placeholder="作業場所を入力"></td>
-            <th>天 候</th>
-            <td><input type="text" id="ky-weather" placeholder="晴れ"></td>
-        </tr>
-        <tr>
-            <th>作業時期</th>
-            <td colspan="5"><input type="text" id="ky-time" placeholder="〇〇時〜〇〇時"></td>
-        </tr>
-        <tr>
-            <th>作業内容</th>
-            <td colspan="5"><input type="text" id="ky-work" placeholder="本日の作業内容を入力"></td>
-        </tr>
-    </table>
-
-    <table>
-        <tr>
-            <th style="width: 15%;">作業従事者<br>（名簿）</th>
-            <td>
-                <textarea id="ky-members" rows="3" placeholder="参加者の氏名を記入（改行またはカンマ区切り）"></textarea>
-            </td>
-        </tr>
-    </table>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%; font-size: 12px;">番号</th>
-                <th style="width: 47.5%;">潜在する危険要因（どんな災害が起きるか）</th>
-                <th style="width: 47.5%;">私たちの行動目標（私たちはこうする）</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="text-align: center;">1</td>
-                <td><textarea id="danger-1" rows="4" placeholder="例：足場が濡れており、滑って転落する"></textarea></td>
-                <td><textarea id="measure-1" rows="4" placeholder="例：足元の清掃を徹底し、安全帯を確実に使用する"></textarea></td>
-            </tr>
-            <tr>
-                <td style="text-align: center;">2</td>
-                <td><textarea id="danger-2" rows="4" placeholder="例：重機の旋回時に吊り荷と衝突する"></textarea></td>
-                <td><textarea id="measure-2" rows="4" placeholder="例：立入禁止区域を明示し、合図を徹底する"></textarea></td>
-            </tr>
-            <tr>
-                <td style="text-align: center;">3</td>
-                <td><textarea id="danger-3" rows="4"></textarea></td>
-                <td><textarea id="measure-3" rows="4"></textarea></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div class="signature-box">
-        <div class="signature-title">作業指揮者<br>確認サイン</div>
-        <div class="canvas-area">
-            <canvas id="signature-canvas" width="650" height="120"></canvas>
-        </div>
-        <div class="no-print" style="width: 100px; text-align: center;">
-            <button type="button" id="clear-btn" class="btn btn-clear" style="padding: 5px 10px; font-size: 12px; margin: 0;">書直す</button>
-        </div>
-    </div>
+<div class="toolbar">
+  <span class="toolbar-title">ＫＹ活動表</span>
+  <button onclick="saveData()">一時保存</button>
+  <button onclick="loadData()">読込</button>
+  <button onclick="clearForm()">クリア</button>
+  <button onclick="savePDF()" class="share-btn" id="pdf-btn">📄 PDFで保存</button>
 </div>
 
-<div class="control-panel no-print">
-    <button type="button" id="pdf-btn" class="btn btn-pdf">📄 PDF形式で保存（ダウンロード）</button>
-    <button type="button" id="save-btn" class="btn btn-action">ブラウザに一時保存</button>
-    <button type="button" id="load-btn" class="btn btn-action">一時保存から読込</button>
+<div class="sheet" id="sheet">
+  <div class="form-tag">様式-2</div>
+
+  <div class="title-row">
+    <span class="date-grp">
+      <input type="date" class="date-picker" id="date_picker">
+      <span class="date-display" id="date_display"></span>
+      <input type="hidden" id="month">
+      <input type="hidden" id="day">
+    </span>
+    <span>危 険 予 知 活 動 表</span>
+  </div>
+
+  <div class="project-row">
+    <input type="text" id="project" value="大井川地区（東沢）直轄治山工事（R7補正）">
+  </div>
+
+  <!-- 会社情報 -->
+  <table class="info-table">
+    <tr>
+      <th>会　社　名</th>
+      <td style="width:30%">
+        <input type="text" id="company" list="company-list" placeholder="選択または入力">
+        <datalist id="company-list">
+          <option value="e-works"></option>
+          <option value="田畑組"></option>
+        </datalist>
+      </td>
+      <th class="label-sm">グループ名</th>
+      <td style="width:25%"><input type="text" id="group"></td>
+      <th class="label-sm">リーダー名</th>
+      <td><input type="text" id="leader"></td>
+    </tr>
+    <tr>
+      <th>参 加 者 名<br>（サイン）</th>
+      <td colspan="5" class="signature-cell">
+        <div class="signature-wrapper">
+          <canvas id="signature-canvas" class="signature-canvas"></canvas>
+          <button type="button" class="signature-clear-btn" onclick="clearSignature()">書直す</button>
+          <span class="signature-hint" id="signature-hint">ここに参加者全員が順番に手書きでサインしてください</span>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <th>作　業　内　容</th>
+      <td colspan="5"><textarea id="work_content" rows="2"></textarea></td>
+    </tr>
+  </table>
+
+  <!-- リスク評価 -->
+  <table class="risk-table">
+    <thead>
+      <tr>
+        <th rowspan="2" class="h-big">危険のポイント</th>
+        <th colspan="3" class="h-small">リスク<br>ランク</th>
+        <th rowspan="2" class="h-big">私達はこうする</th>
+        <th colspan="3" class="h-small">対策後<br>危険度</th>
+        <th colspan="2" class="h-small">作業主任者、作業指揮者、有資格者名</th>
+      </tr>
+      <tr>
+        <th class="score-cell">①</th>
+        <th class="score-cell">②</th>
+        <th class="score-cell">①×②</th>
+        <th class="score-cell">①'</th>
+        <th class="score-cell">②'</th>
+        <th class="score-cell">①'×②'</th>
+        <th>作業に必要な資格等</th>
+        <th>氏　　　名</th>
+      </tr>
+    </thead>
+    <tbody id="risk-rows"></tbody>
+  </table>
+
+  <!-- 確認点検 -->
+  <div class="check-section">
+    <table class="check-table">
+      <thead>
+        <tr>
+          <th style="width:75%;">確認点検項目</th>
+          <th>確認欄</th>
+        </tr>
+      </thead>
+      <tbody id="check-rows"></tbody>
+    </table>
+  </div>
+
+  <!-- 凡例 -->
+  <div class="legend">
+    <div class="section-title">①. 事故区分に対応した重大性の点数評価</div>
+    <table>
+      <tr>
+        <td style="width:30%;">① 重度の災害</td>
+        <td class="score-col">10点</td>
+        <td>重度（死亡、重度後遺障害）</td>
+      </tr>
+      <tr>
+        <td>② 中度の災害</td>
+        <td class="score-col">6点</td>
+        <td>中度（休業30日を超える）</td>
+      </tr>
+      <tr>
+        <td>③ 軽度の災害</td>
+        <td class="score-col">3点</td>
+        <td>軽度（休業4日〜30日程度）</td>
+      </tr>
+      <tr>
+        <td>④ 微軽度の災害</td>
+        <td class="score-col">1点</td>
+        <td>微軽度（休業無、手当後復帰）</td>
+      </tr>
+    </table>
+
+    <div class="section-title" style="margin-top:6px;">②. 危険の発生の可能性を点数評価</div>
+    <table>
+      <tr>
+        <td style="width:30%;">① 多く発生する</td>
+        <td class="score-col">4点</td>
+        <td>多く発生する</td>
+      </tr>
+      <tr>
+        <td>② 時々発生する</td>
+        <td class="score-col">2点</td>
+        <td>時々発生する</td>
+      </tr>
+      <tr>
+        <td>③ 殆んど発生しない</td>
+        <td class="score-col">1点</td>
+        <td>殆んど発生しない</td>
+      </tr>
+    </table>
+
+    <div class="section-title" style="margin-top:6px;">4. リスクランク</div>
+    <table>
+      <tr>
+        <th class="head-row" style="width:40%;">評価値点数</th>
+        <th class="head-row" style="width:20%;">記号</th>
+        <th class="head-row">危険度</th>
+      </tr>
+      <tr>
+        <td style="text-align:center;">20点以上</td>
+        <td style="text-align:center; font-weight:700;">◎</td>
+        <td style="text-align:center;">危険大</td>
+      </tr>
+      <tr>
+        <td style="text-align:center;">10点以上20点未満</td>
+        <td style="text-align:center; font-weight:700;">○</td>
+        <td style="text-align:center;">危険中</td>
+      </tr>
+      <tr>
+        <td style="text-align:center;">3点以上10点未満</td>
+        <td style="text-align:center; font-weight:700;">△</td>
+        <td style="text-align:center;">危険小</td>
+      </tr>
+      <tr>
+        <td style="text-align:center;">3点未満</td>
+        <td style="text-align:center; font-weight:700;">□</td>
+        <td style="text-align:center;">注　意</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- フッター -->
+  <table class="footer-table" style="margin-top:8px;">
+    <thead>
+      <tr>
+        <th style="width:70%;">元請会社に対する連絡事項、改善願いなどの記入欄</th>
+        <th>作業所長</th>
+        <th>担当者</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><textarea id="notes" rows="3"></textarea></td>
+        <td><input type="text" id="boss"></td>
+        <td><input type="text" id="staff"></td>
+      </tr>
+    </tbody>
+  </table>
 </div>
+
+<div class="status-msg" id="status"></div>
+
+<!-- 書出完了モーダルはPDF化に伴い削除済み -->
+
+<!-- 名簿管理モーダルは手書きサイン化に伴い削除済み -->
 
 <script>
-    window.addEventListener('DOMContentLoaded', () => {
-        // --- 1. 手書きサイン（キャンバス）のコントロール ---
-        const canvas = document.getElementById('signature-canvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
+  const STORAGE_KEY = 'ky_form_data_v3';
+  const RISK_ROW_COUNT = 7;
+  const CHECK_ITEMS = [
+    '朝礼に参加しているか。',
+    '服装・保護具の点検は良いか。',
+    '作業員の健康状態は良いか。',
+    '有資格者の配置は良いか。',
+    '作業方法、手順は理解されているか。'
+  ];
 
-        ctx.lineWidth = 3;         // 線の太さ
-        ctx.lineCap = 'round';     // 線の角を丸く
-        ctx.strokeStyle = '#000000'; // 黒色
+  // 危険のポイント プリセット（カテゴリ別）
+  const DANGER_PRESETS = {
+    '法面施工': [
+      '法面からの墜落・転落',
+      '法面の浮石・転石の落下',
+      '法枠・ラス張り作業中の用具落下',
+      '法面崩壊・地山のはらみ出し',
+      'ロープ・吊金具の損傷による墜落',
+      '重機との接触・挟まれ',
+      '熱中症・悪天候による体調不良'
+    ],
+    '重機災害': [
+      '重機の旋回時の作業員との接触',
+      '重機の転倒・横転（不安定地盤・斜面）',
+      'バケット・アタッチメントの落下・脱落',
+      '後進時の死角による轢過事故',
+      '架空線・地中埋設物への接触・損傷'
+    ],
+    '玉掛け災害': [
+      '吊荷の落下による下敷き災害',
+      'ワイヤー・スリングの切断による落下',
+      '荷振れ・荷の回転による接触',
+      '玉掛け不良による荷崩れ',
+      '吊荷の下への立入による被災'
+    ]
+  };
 
-        // 座標取得（PCマウス・スマホタッチ対応）
-        function getEventPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            if (e.touches && e.touches.length > 0) {
-                return {
-                    x: e.touches[0].clientX - rect.left,
-                    y: e.touches[0].clientY - rect.top
-                };
-            } else {
-                return {
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
-                };
-            }
-        }
+  // 対策（私達はこうする） プリセット（カテゴリ別）
+  const MEASURE_PRESETS = {
+    '法面施工': [
+      '安全帯（フルハーネス）を使用し親綱に確実にフックを掛ける',
+      '作業前に浮石・転石の点検と除去を行う',
+      '工具は落下防止紐で固定し、下方への立入禁止区域を設定する',
+      '法面の亀裂・湧水を毎日確認し異常時は直ちに退避する',
+      '使用前にロープ・金具の点検を行い、損傷品は使用しない',
+      '重機の旋回範囲を明示し、誘導員を配置し合図を徹底する',
+      'こまめな水分・塩分補給と休憩を取り、無理せず作業中止判断を行う'
+    ],
+    '重機災害対策': [
+      '旋回範囲をカラーコーン等で明示し作業員の立入を禁止する',
+      '作業前に地盤の支持力を確認し、敷鉄板等で養生する',
+      '始業前点検でピン・ボルト・配管の緩みや損傷を確認する',
+      'バック時は誘導員を配置し、警報装置の作動を確認する',
+      '架空線への離隔距離を確保し、地下埋設物は事前に試掘確認する'
+    ],
+    '玉掛け災害対策': [
+      '吊荷の真下への立入を禁止し、誘導員が安全な位置から合図する',
+      '玉掛け用具は始業前点検を行い、損傷・摩耗品は交換する',
+      '介錯ロープを使用して荷振れを防止し、ゆっくり巻上げる',
+      '有資格者が玉掛けを行い、重心・吊角度・モード係数を確認する',
+      '吊上げ前に試吊りを行い、バランスと固定状態を確認する'
+    ]
+  };
 
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getEventPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-            if(e.cancelable) e.preventDefault();
-        }
+  // カテゴリ別プリセットからoptgroup付きHTMLを生成
+  function buildPresetOptions(presets, placeholder) {
+    let html = `<option value="">${placeholder}</option>`;
+    let counter = 1;
+    for (const [category, items] of Object.entries(presets)) {
+      html += `<optgroup label="── ${category} ──">`;
+      for (const t of items) {
+        html += `<option value="${t}">${counter}. ${t}</option>`;
+        counter++;
+      }
+      html += `</optgroup>`;
+    }
+    return html;
+  }
 
-        function draw(e) {
-            if (!isDrawing) return;
-            const pos = getEventPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            if(e.cancelable) e.preventDefault();
-        }
+  function buildRiskRows() {
+    const tbody = document.getElementById('risk-rows');
+    const sevOpts = '<option value="">-</option><option value="10">10</option><option value="6">6</option><option value="3">3</option><option value="1">1</option>';
+    const probOpts = '<option value="">-</option><option value="4">4</option><option value="2">2</option><option value="1">1</option>';
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
+    const dangerOpts = buildPresetOptions(DANGER_PRESETS, '▼ プリセットから選択（危険のポイント）');
+    const measureOpts = buildPresetOptions(MEASURE_PRESETS, '▼ プリセットから選択（対策）');
 
-        // マウス操作
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        window.addEventListener('mouseup', stopDrawing);
+    for (let i = 0; i < RISK_ROW_COUNT; i++) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="danger-cell">
+          <select class="preset-select" data-target="danger_${i}">${dangerOpts}</select>
+          <textarea data-name="danger_${i}" rows="2"></textarea>
+        </td>
+        <td class="score-cell"><select data-name="sev_${i}" data-row="${i}" data-pair="before">${sevOpts}</select></td>
+        <td class="score-cell"><select data-name="prob_${i}" data-row="${i}" data-pair="before">${probOpts}</select></td>
+        <td class="score-cell risk-result" id="risk_before_${i}">-</td>
+        <td class="measure-cell">
+          <select class="preset-select" data-target="measure_${i}">${measureOpts}</select>
+          <textarea data-name="measure_${i}" rows="2"></textarea>
+        </td>
+        <td class="score-cell"><select data-name="sev2_${i}" data-row="${i}" data-pair="after">${sevOpts}</select></td>
+        <td class="score-cell"><select data-name="prob2_${i}" data-row="${i}" data-pair="after">${probOpts}</select></td>
+        <td class="score-cell risk-result" id="risk_after_${i}">-</td>
+        <td class="qual-cell"><input type="text" data-name="qual_${i}"></td>
+        <td class="name-cell"><input type="text" data-name="qname_${i}"></td>
+      `;
+      tbody.appendChild(tr);
+    }
 
-        // タッチ・ペン操作
-        canvas.addEventListener('touchstart', startDrawing, { passive: false });
-        canvas.addEventListener('touchmove', draw, { passive: false });
-        canvas.addEventListener('touchend', stopDrawing);
-
-        // 書直し（クリア）ボタン
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-
-
-        // --- 2. PDF保存機能 ---
-        document.getElementById('pdf-btn').addEventListener('click', () => {
-            const element = document.getElementById('ky-pdf-target');
-            
-            const opt = {
-                margin:       10,
-                filename:     'KY活動表.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4縦サイズ
-            };
-
-            // PDFダウンロード実行
-            html2pdf().set(opt).from(element).save();
-        });
-
-
-        // --- 3. ブラウザ一時保存・読込（LocalStorage） ---
-        document.getElementById('save-btn').addEventListener('click', () => {
-            const kyData = {
-                date: document.getElementById('ky-date').value,
-                dept: document.getElementById('ky-dept').value,
-                leader: document.getElementById('ky-leader').value,
-                location: document.getElementById('ky-location').value,
-                weather: document.getElementById('ky-weather').value,
-                time: document.getElementById('ky-time').value,
-                work: document.getElementById('ky-work').value,
-                members: document.getElementById('ky-members').value,
-                danger1: document.getElementById('danger-1').value,
-                measure1: document.getElementById('measure-1').value,
-                danger2: document.getElementById('danger-2').value,
-                measure2: document.getElementById('measure-2').value,
-                danger3: document.getElementById('danger-3').value,
-                measure3: document.getElementById('measure-3').value,
-                signature: canvas.toDataURL() // サインもデータ化
-            };
-            localStorage.setItem('ky_table_form_data', JSON.stringify(kyData));
-            alert('現在の入力内容とサインを一時保存しました。');
-        });
-
-        document.getElementById('load-btn').addEventListener('click', () => {
-            const saved = localStorage.getItem('ky_table_form_data');
-            if (!saved) {
-                alert('保存されたデータがありません。');
-                return;
-            }
-            const data = JSON.parse(saved);
-            document.getElementById('ky-date').value = data.date || '';
-            document.getElementById('ky-dept').value = data.dept || '';
-            document.getElementById('ky-leader').value = data.leader || '';
-            document.getElementById('ky-location').value = data.location || '';
-            document.getElementById('ky-weather').value = data.weather || '';
-            document.getElementById('ky-time').value = data.time || '';
-            document.getElementById('ky-work').value = data.work || '';
-            document.getElementById('ky-members').value = data.members || '';
-            document.getElementById('danger-1').value = data.danger1 || '';
-            document.getElementById('measure-1').value = data.measure1 || '';
-            document.getElementById('danger-2').value = data.danger2 || '';
-            document.getElementById('measure-2').value = data.measure2 || '';
-            document.getElementById('danger-3').value = data.danger3 || '';
-            document.getElementById('measure-3').value = data.measure3 || '';
-            
-            if (data.signature) {
-                const img = new Image();
-                img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
-                };
-                img.src = data.signature;
-            }
-            alert('データを読み込みました。');
-        });
+    tbody.querySelectorAll('select[data-row]').forEach(sel => {
+      sel.addEventListener('change', () => calcRisk(sel.dataset.row, sel.dataset.pair));
     });
-</script>
 
+    // プリセット選択でテキストエリアに挿入
+    tbody.querySelectorAll('.preset-select').forEach(sel => {
+      sel.addEventListener('change', () => {
+        if (!sel.value) return;
+        const ta = document.querySelector(`[data-name="${sel.dataset.target}"]`);
+        ta.value = sel.value;
+        sel.selectedIndex = 0; // リセット
+        ta.focus();
+      });
+    });
+  }
+
+  function calcRisk(row, pair) {
+    const sevName = pair === 'before' ? `sev_${row}` : `sev2_${row}`;
+    const probName = pair === 'before' ? `prob_${row}` : `prob2_${row}`;
+    const sev = document.querySelector(`[data-name="${sevName}"]`).value;
+    const prob = document.querySelector(`[data-name="${probName}"]`).value;
+    const cell = document.getElementById(`risk_${pair}_${row}`);
+
+    if (!sev || !prob) {
+      cell.textContent = '-';
+      return;
+    }
+
+    const score = parseInt(sev) * parseInt(prob);
+    let mark;
+    if (score >= 20) mark = '◎';
+    else if (score >= 10) mark = '○';
+    else if (score >= 3) mark = '△';
+    else mark = '□';
+
+    cell.textContent = `${score} ${mark}`;
+  }
+
+  function buildCheckRows() {
+    const tbody = document.getElementById('check-rows');
+    CHECK_ITEMS.forEach((item, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="check-label">${i + 1}. ${item}</td>
+        <td class="check-box" data-name="check_${i}" onclick="toggleCheck(this)">　</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function toggleCheck(td) {
+    if (td.classList.contains('checked')) {
+      td.classList.remove('checked');
+      td.textContent = '　';
+    } else {
+      td.classList.add('checked');
+      td.textContent = '✓';
+    }
+  }
+
+  function collectData() {
+    const data = {};
+    document.querySelectorAll('input[type="text"], input[type="date"], input[type="hidden"], textarea, select').forEach(el => {
+      const name = el.dataset.name || el.id;
+      if (name) data[name] = el.value;
+    });
+    document.querySelectorAll('.check-box').forEach(el => {
+      data[el.dataset.name] = el.classList.contains('checked');
+    });
+    // 手書きサインを画像データとして含める
+    data.signature_image = getSignatureDataUrl();
+    return data;
+  }
+
+  function applyData(data) {
+    document.querySelectorAll('input[type="text"], input[type="date"], textarea, select').forEach(el => {
+      const name = el.dataset.name || el.id;
+      if (name && data[name] !== undefined) el.value = data[name];
+    });
+    document.querySelectorAll('.check-box').forEach(el => {
+      const name = el.dataset.name;
+      if (data[name]) {
+        el.classList.add('checked');
+        el.textContent = '✓';
+      } else {
+        el.classList.remove('checked');
+        el.textContent = '　';
+      }
+    });
+    for (let i = 0; i < RISK_ROW_COUNT; i++) {
+      calcRisk(i, 'before');
+      calcRisk(i, 'after');
+    }
+    // 手書きサインを復元
+    if (data.signature_image) {
+      restoreSignatureFromDataUrl(data.signature_image);
+    } else {
+      // データが無ければクリア
+      if (sigCtx) {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        sigHasInk = false;
+        showSigHint();
+      }
+    }
+    // 日付表示を更新
+    if (typeof updateDateDisplay === 'function') updateDateDisplay();
+  }
+
+  function showStatus(msg) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  let memoryStore = null;
+  function saveData() {
+    const data = collectData();
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      memoryStore = data;
+    }
+    showStatus('保存しました');
+  }
+
+  function loadData() {
+    let data = null;
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) data = JSON.parse(raw);
+    } catch (e) {}
+    if (!data) data = memoryStore;
+    if (data) {
+      applyData(data);
+      showStatus('読み込みました');
+    } else {
+      showStatus('保存データなし');
+    }
+  }
+
+  // ========= 手書きサイン機能 =========
+  let sigCanvas, sigCtx;
+  let sigDrawing = false;
+  let sigLastX = 0, sigLastY = 0;
+  let sigHasInk = false;
+
+  function initSignature() {
+    sigCanvas = document.getElementById('signature-canvas');
+    if (!sigCanvas) return;
+    sigCtx = sigCanvas.getContext('2d');
+
+    // Canvasの実サイズをCSSサイズに合わせる（高解像度対応）
+    resizeSignatureCanvas();
+    window.addEventListener('resize', () => {
+      // リサイズ時に既存の絵を保持
+      const dataUrl = sigCanvas.toDataURL();
+      resizeSignatureCanvas();
+      if (sigHasInk) restoreSignatureFromDataUrl(dataUrl);
+    });
+
+    // ペン設定
+    sigCtx.strokeStyle = '#000';
+    sigCtx.lineWidth = 2;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+
+    // マウスイベント
+    sigCanvas.addEventListener('mousedown', sigStart);
+    sigCanvas.addEventListener('mousemove', sigDraw);
+    sigCanvas.addEventListener('mouseup', sigEnd);
+    sigCanvas.addEventListener('mouseleave', sigEnd);
+
+    // タッチイベント（スマホ・タブレット対応）
+    sigCanvas.addEventListener('touchstart', sigTouchStart, { passive: false });
+    sigCanvas.addEventListener('touchmove', sigTouchMove, { passive: false });
+    sigCanvas.addEventListener('touchend', sigEnd);
+    sigCanvas.addEventListener('touchcancel', sigEnd);
+  }
+
+  function resizeSignatureCanvas() {
+    const rect = sigCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    sigCanvas.width = rect.width * dpr;
+    sigCanvas.height = rect.height * dpr;
+    sigCtx.scale(dpr, dpr);
+    sigCtx.strokeStyle = '#000';
+    sigCtx.lineWidth = 2;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+  }
+
+  function getSigPos(e) {
+    const rect = sigCanvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  function sigStart(e) {
+    sigDrawing = true;
+    const pos = getSigPos(e);
+    sigLastX = pos.x;
+    sigLastY = pos.y;
+    // 点を打つ（タップだけでも見えるように）
+    sigCtx.beginPath();
+    sigCtx.arc(pos.x, pos.y, 1, 0, Math.PI * 2);
+    sigCtx.fillStyle = '#000';
+    sigCtx.fill();
+    hideSigHint();
+    sigHasInk = true;
+  }
+
+  function sigDraw(e) {
+    if (!sigDrawing) return;
+    const pos = getSigPos(e);
+    sigCtx.beginPath();
+    sigCtx.moveTo(sigLastX, sigLastY);
+    sigCtx.lineTo(pos.x, pos.y);
+    sigCtx.stroke();
+    sigLastX = pos.x;
+    sigLastY = pos.y;
+  }
+
+  function sigEnd() {
+    sigDrawing = false;
+  }
+
+  function sigTouchStart(e) {
+    e.preventDefault();
+    const t = e.touches[0];
+    sigStart({ clientX: t.clientX, clientY: t.clientY });
+  }
+
+  function sigTouchMove(e) {
+    e.preventDefault();
+    const t = e.touches[0];
+    sigDraw({ clientX: t.clientX, clientY: t.clientY });
+  }
+
+  function hideSigHint() {
+    const hint = document.getElementById('signature-hint');
+    if (hint) hint.classList.add('hidden');
+  }
+
+  function showSigHint() {
+    const hint = document.getElementById('signature-hint');
+    if (hint) hint.classList.remove('hidden');
+  }
+
+  function clearSignature() {
+    if (!sigCtx) return;
+    if (!confirm('サインをすべて消去しますか？')) return;
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    sigHasInk = false;
+    showSigHint();
+    showStatus('サインを消去しました');
+  }
+
+  function getSignatureDataUrl() {
+    if (!sigCanvas || !sigHasInk) return '';
+    return sigCanvas.toDataURL('image/png');
+  }
+
+  function restoreSignatureFromDataUrl(dataUrl) {
+    if (!dataUrl || !sigCtx) {
+      sigHasInk = false;
+      showSigHint();
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const rect = sigCanvas.getBoundingClientRect();
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      // 表示サイズに合わせて描画（dpr スケール済みのコンテキストなのでCSSサイズで指定）
+      sigCtx.drawImage(img, 0, 0, rect.width, rect.height);
+      sigHasInk = true;
+      hideSigHint();
+    };
+    img.src = dataUrl;
+  }
+  // ========= 手書きサイン ここまで =========
+
+  // ========= PDF保存 =========
+  async function savePDF() {
+    const btn = document.getElementById('pdf-btn');
+    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+      alert('PDF生成ライブラリの読み込みに失敗しました。\nインターネット接続を確認してから再度お試しください。');
+      return;
+    }
+
+    // ファイル名を生成
+    const data = collectData();
+    const month = data.month || '00';
+    const day = data.day || '00';
+    const company = (data.company || '').trim();
+    const projectInput = document.getElementById('project');
+    const project = (projectInput ? projectInput.value : '').trim();
+    let filename = `KY活動表_${month}月${day}日`;
+    if (company) filename += `_${company}`;
+    if (project) filename += `_${project.substring(0, 20)}`;
+    filename = filename.replace(/[\\\/:*?"<>|]/g, '_') + '.pdf';
+
+    // ボタンを「生成中」表示に
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ PDF生成中...';
+    btn.disabled = true;
+
+    // PDF用CSSを適用
+    document.body.classList.add('pdf-rendering');
+    // レイアウト反映のため少し待つ
+    await new Promise(r => setTimeout(r, 200));
+
+    try {
+      const sheet = document.getElementById('sheet');
+
+      // sheetをCanvasに変換
+      const canvas = await html2canvas(sheet, {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        backgroundColor: '#ffffff',
+        width: sheet.offsetWidth,
+        height: sheet.offsetHeight,
+        windowWidth: sheet.offsetWidth,
+        windowHeight: sheet.offsetHeight
+      });
+
+      // A4横サイズ (297mm × 210mm) のPDFを作成
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'landscape',
+        compress: true
+      });
+
+      const pdfW = pdf.internal.pageSize.getWidth();   // 297
+      const pdfH = pdf.internal.pageSize.getHeight();  // 210
+
+      // 画像を用紙全面に配置
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+      pdf.save(filename);
+
+      showStatus('PDFを保存しました');
+    } catch (err) {
+      console.error('PDF生成エラー:', err);
+      alert('PDFの生成に失敗しました。\nエラー: ' + (err.message || err));
+    } finally {
+      document.body.classList.remove('pdf-rendering');
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
+  // ========= PDF保存 ここまで =========
+
+  function clearForm() {
+    if (!confirm('入力内容をすべてクリアしますか？')) return;
+    document.querySelectorAll('input[type="text"], textarea, select').forEach(el => {
+      if (el.id === 'project') return;
+      el.value = '';
+    });
+    document.querySelectorAll('.check-box').forEach(el => {
+      el.classList.remove('checked');
+      el.textContent = '　';
+    });
+    for (let i = 0; i < RISK_ROW_COUNT; i++) {
+      calcRisk(i, 'before');
+      calcRisk(i, 'after');
+    }
+    // 手書きサインもクリア
+    if (sigCtx) {
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      sigHasInk = false;
+      showSigHint();
+    }
+    // 日付は今日に戻す
+    const t = new Date();
+    const y = t.getFullYear();
+    const m = String(t.getMonth() + 1).padStart(2, '0');
+    const d = String(t.getDate()).padStart(2, '0');
+    datePicker.value = `${y}-${m}-${d}`;
+    updateDateDisplay();
+    showStatus('クリアしました');
+  }
+
+  buildRiskRows();
+  buildCheckRows();
+
+  // 日付ピッカー初期化
+  const datePicker = document.getElementById('date_picker');
+  const dateDisplay = document.getElementById('date_display');
+  const monthHidden = document.getElementById('month');
+  const dayHidden = document.getElementById('day');
+
+  function updateDateDisplay() {
+    const v = datePicker.value; // YYYY-MM-DD
+    if (!v) {
+      dateDisplay.textContent = '';
+      monthHidden.value = '';
+      dayHidden.value = '';
+      return;
+    }
+    const parts = v.split('-');
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    dateDisplay.textContent = `${m}月${d}日`;
+    monthHidden.value = m;
+    dayHidden.value = d;
+  }
+
+  datePicker.addEventListener('change', updateDateDisplay);
+  datePicker.addEventListener('input', updateDateDisplay);
+
+  // 今日の日付をセット
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  datePicker.value = `${yyyy}-${mm}-${dd}`;
+  updateDateDisplay();
+
+  // 手書きサインCanvasを初期化
+  initSignature();
+</script>
 </body>
 </html>
