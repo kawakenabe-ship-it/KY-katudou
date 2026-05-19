@@ -1,1364 +1,300 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>危険予知活動表</title>
-<style>
-  :root {
-    --ink: #000;
-    --line: #000;
-    --bg: #fff;
-    --hover: #fffbe6;
-  }
-
-  * { box-sizing: border-box; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: #e8e8e8;
-    color: var(--ink);
-    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "MS PGothic", "Meiryo", sans-serif;
-    font-size: 13px;
-    line-height: 1.4;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  .toolbar {
-    position: sticky;
-    top: 0;
-    background: #333;
-    color: #fff;
-    padding: 8px 16px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-    z-index: 100;
-  }
-
-  .toolbar-title {
-    font-weight: 700;
-    font-size: 14px;
-    margin-right: auto;
-  }
-
-  .toolbar button {
-    background: #fff;
-    color: #000;
-    border: 1px solid #000;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 40px;
-    font-family: inherit;
-  }
-  .toolbar button:active { background: #ddd; }
-  .toolbar button.share-btn {
-    background: #0e7a3a;
-    color: #fff;
-    border-color: #0a5a2a;
-  }
-  .toolbar button.share-btn:hover { background: #0a5a2a; }
-  .toolbar button.share-btn:active { background: #084820; }
-
-  .sheet {
-    max-width: 1180px;
-    margin: 16px auto;
-    background: var(--bg);
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-
-  .form-tag {
-    text-align: right;
-    font-size: 11px;
-    margin-bottom: 2px;
-  }
-
-  /* タイトル行 */
-  .title-row {
-    border: 1.5px solid var(--line);
-    padding: 8px 12px;
-    text-align: center;
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: 0.6em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-  }
-
-  .title-row .date-grp {
-    display: inline-flex;
-    align-items: baseline;
-    font-size: 20px;
-    letter-spacing: 0;
-    margin-right: 1.5em;
-  }
-
-  .title-row input.date-picker {
-    border: 1px solid #888;
-    border-radius: 4px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    padding: 4px 6px;
-    background: #f7f7f7;
-    margin-right: 8px;
-    cursor: pointer;
-    min-height: 36px;
-  }
-  .title-row input.date-picker:focus { outline: none; background: var(--hover); border-color: #000; }
-  .title-row .date-display {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0;
-    min-width: 110px;
-    text-align: left;
-  }
-
-  /* 工事名 */
-  .project-row {
-    border: 1.5px solid var(--line);
-    border-top: none;
-    padding: 8px 12px;
-    text-align: center;
-    font-weight: 700;
-    font-size: 18px;
-  }
-  .project-row input {
-    width: 100%;
-    border: none;
-    text-align: center;
-    font-weight: 700;
-    font-size: 18px;
-    font-family: inherit;
-    background: transparent;
-  }
-  .project-row input:focus { outline: none; background: var(--hover); }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: -1.5px;
-  }
-
-  th, td {
-    border: 1.5px solid var(--line);
-    padding: 4px 6px;
-    vertical-align: middle;
-    text-align: center;
-    background: #fff;
-  }
-
-  th {
-    font-weight: 700;
-    font-size: 13px;
-  }
-
-  /* 会社情報テーブル */
-  .info-table th {
-    width: 8%;
-    letter-spacing: 0.3em;
-    text-align: center;
-  }
-  .info-table td {
-    text-align: left;
-  }
-  .info-table .label-sm {
-    letter-spacing: 0.1em;
-    font-size: 12px;
-  }
-
-  /* 入力フィールド共通 */
-  input[type="text"], textarea, select {
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 4px 6px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--ink);
-    min-height: 32px;
-  }
-  input[type="text"]:focus,
-  textarea:focus,
-  select:focus {
-    outline: none;
-    background: var(--hover);
-  }
-  textarea {
-    resize: vertical;
-    min-height: 40px;
-    line-height: 1.4;
-  }
-
-  /* リスクテーブル */
-  .risk-table th {
-    font-size: 13px;
-    padding: 6px 4px;
-  }
-  .risk-table .h-big {
-    font-size: 16px;
-    font-weight: 700;
-  }
-  .risk-table .h-small {
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .risk-table td {
-    padding: 2px;
-    height: 50px;
-  }
-  .risk-table td.danger-cell,
-  .risk-table td.measure-cell {
-    text-align: left;
-    width: 22%;
-  }
-  .risk-table td.qual-cell,
-  .risk-table td.name-cell {
-    text-align: left;
-    width: 11%;
-  }
-  .risk-table .score-cell {
-    width: 5%;
-  }
-  .risk-table select {
-    text-align: center;
-    text-align-last: center;
-    padding: 2px;
-    font-size: 13px;
-  }
-  /* プリセット選択プルダウン（危険ポイント・対策セル内） */
-  .risk-table select.preset-select {
-    width: 100%;
-    text-align: left;
-    text-align-last: left;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 6px;
-    margin-bottom: 3px;
-    border: 1.5px solid #d97706;
-    background: #fff3cd;
-    color: #92400e;
-    min-height: 30px;
-    cursor: pointer;
-    border-radius: 3px;
-  }
-  .risk-table select.preset-select:hover {
-    background: #ffe69c;
-    border-color: #92400e;
-    color: #000;
-  }
-  .risk-table select.preset-select:focus {
-    outline: none;
-    background: var(--hover);
-    border-color: #000;
-  }
-  .risk-result {
-    font-weight: 700;
-    font-size: 14px;
-    pointer-events: none;
-    text-align: center;
-  }
-
-  /* 確認点検（リスク表の右側に重なる） */
-  .check-section {
-    margin-top: 8px;
-  }
-  .check-table th {
-    font-size: 13px;
-  }
-  .check-table td.check-label {
-    text-align: left;
-    font-size: 13px;
-  }
-  .check-table td.check-box {
-    width: 80px;
-    cursor: pointer;
-    font-size: 20px;
-    user-select: none;
-    height: 36px;
-  }
-  .check-table td.check-box.checked {
-    font-weight: 700;
-  }
-  .check-table td.check-box:hover {
-    background: var(--hover);
-  }
-
-  /* 凡例（重大性・可能性・リスクランク） */
-  .legend {
-    margin-top: 8px;
-  }
-  .legend table {
-    width: 100%;
-  }
-  .legend th, .legend td {
-    font-size: 12px;
-    padding: 3px 6px;
-    text-align: left;
-  }
-  .legend th {
-    font-weight: 700;
-  }
-  .legend .score-col {
-    width: 90px;
-    text-align: center;
-  }
-  .legend .head-row th {
-    text-align: center;
-    background: #fff;
-  }
-  .legend .section-title {
-    font-size: 12px;
-    text-align: left;
-    background: #fff;
-    border: 1.5px solid var(--line);
-    border-bottom: none;
-    padding: 3px 6px;
-    font-weight: 700;
-  }
-
-  /* フッター */
-  .footer-table td {
-    text-align: left;
-    height: 60px;
-  }
-  .footer-table th {
-    width: 15%;
-  }
-
-  /* 印刷 */
-  @media print {
-    body { background: #fff; font-size: 8.5px; line-height: 1.2; }
-    .toolbar { display: none; }
-    .status-msg { display: none !important; }
-    .sheet {
-      box-shadow: none;
-      margin: 0;
-      max-width: none;
-      width: 100%;
-      padding: 2mm 3mm;
-    }
-    input, textarea, select {
-      background: transparent !important;
-      color: #000 !important;
-      font-size: 9px !important;
-      min-height: 0 !important;
-      padding: 1px 2px !important;
-    }
-    textarea { line-height: 1.15 !important; }
-    input:focus, textarea:focus, select:focus { background: transparent !important; }
-
-    /* プリセット選択は印刷で非表示 */
-    .risk-table select.preset-select { display: none !important; }
-    /* 日付ピッカーは印刷時非表示、表示用テキストのみ */
-    .title-row input.date-picker { display: none !important; }
-
-    /* ヘッダ周り圧縮 */
-    .form-tag { font-size: 9px; margin-bottom: 1px; }
-    .title-row { font-size: 16px; letter-spacing: 0.4em; padding: 2px 6px; }
-    .title-row .date-grp { font-size: 13px; }
-    .title-row .date-display { font-size: 13px; min-width: 70px; }
-    .project-row { font-size: 13px; padding: 2px 6px; }
-    .project-row input { font-size: 13px !important; }
-
-    /* テーブル全般 */
-    th, td { padding: 1px 3px !important; }
-    .info-table th, .info-table td { font-size: 9px; }
-
-    /* リスク表 */
-    .risk-table th { font-size: 9px; padding: 2px !important; }
-    .risk-table .h-big { font-size: 10px; }
-    .risk-table .h-small { font-size: 8.5px; }
-    .risk-table td { height: 28px !important; padding: 1px !important; }
-    .risk-result { font-size: 10px !important; }
-
-    /* 確認点検 */
-    .check-section { margin-top: 2px; }
-    .check-table td.check-label { font-size: 9px; }
-    .check-table td.check-box { font-size: 12px; height: 18px !important; }
-
-    /* 凡例 */
-    .legend { margin-top: 2px; }
-    .legend th, .legend td { font-size: 8px; padding: 1px 4px !important; }
-    .legend .section-title { font-size: 8.5px; padding: 1px 4px; }
-
-    /* フッター */
-    .footer-table td { height: 36px !important; }
-
-    /* 改ページ禁止 */
-    .sheet, table, tr, .legend, .check-section, .footer-table {
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    @page { size: A4 landscape; margin: 4mm; }
-  }
-
-  /* モバイル */
-  @media (max-width: 700px) {
-    .toolbar-title { width: 100%; }
-    .toolbar button { flex: 1; font-size: 12px; padding: 6px 8px; }
-    .sheet { padding: 8px; margin: 4px; }
-    .title-row { font-size: 16px; letter-spacing: 0.3em; padding: 6px; flex-wrap: wrap; }
-    .title-row .date-grp { font-size: 14px; margin-right: 8px; }
-    .title-row input.date-picker { font-size: 14px; min-height: 34px; }
-    .title-row .date-display { font-size: 16px; min-width: 90px; }
-    .project-row { font-size: 14px; padding: 6px; }
-    .project-row input { font-size: 14px; }
-    th, td { padding: 3px 2px; font-size: 11px; }
-    .risk-table .h-big { font-size: 13px; }
-    .risk-table td { height: 40px; }
-    .info-table th { letter-spacing: 0.1em; font-size: 11px; }
-  }
-
-  @media (hover: none) and (pointer: coarse) {
-    input, select, textarea { font-size: 16px !important; }
-  }
-
-  .status-msg {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #000;
-    color: #fff;
-    padding: 10px 18px;
-    font-weight: 700;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 200;
-    pointer-events: none;
-  }
-  .status-msg.show { opacity: 1; }
-
-  /* 書出完了モーダル */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 300;
-    padding: 16px;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box {
-    background: #fff;
-    border: 2px solid #000;
-    max-width: 420px;
-    width: 100%;
-    padding: 18px 20px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-  }
-  .modal-title {
-    font-size: 16px;
-    font-weight: 700;
-    padding-bottom: 10px;
-    margin-bottom: 12px;
-    border-bottom: 1.5px solid #000;
-  }
-  .modal-label {
-    font-size: 12px;
-    color: #555;
-    margin-bottom: 4px;
-  }
-  .modal-filename {
-    font-size: 14px;
-    font-weight: 700;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    padding: 8px 10px;
-    margin-bottom: 12px;
-    word-break: break-all;
-    user-select: all;
-  }
-  .modal-note {
-    font-size: 12px;
-    line-height: 1.6;
-    color: #333;
-    background: #fffbe6;
-    border-left: 3px solid #f0c000;
-    padding: 8px 10px;
-    margin-bottom: 14px;
-  }
-  .modal-btn {
-    width: 100%;
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    min-height: 42px;
-  }
-  .modal-btn:active { background: #444; }
-
-  @media print {
-    .modal-overlay { display: none !important; }
-    .name-manage-btn { display: none !important; }
-    .name-chips { display: none !important; }
-  }
-
-  /* 参加者欄 */
-  .participant-cell {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .name-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    min-height: 0;
-  }
-  .name-chips:empty { display: none; }
-  .name-chip {
-    background: #e0f2fe;
-    border: 1px solid #0284c7;
-    color: #0c4a6e;
-    padding: 4px 10px;
-    border-radius: 14px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    min-height: 28px;
-  }
-  .name-chip:hover { background: #bae6fd; }
-  .name-chip:active { background: #7dd3fc; }
-  .name-manage-btn {
-    align-self: flex-start;
-    background: #fff;
-    border: 1px solid #888;
-    padding: 3px 10px;
-    font-size: 11px;
-    cursor: pointer;
-    font-family: inherit;
-    border-radius: 3px;
-    min-height: 26px;
-  }
-  .name-manage-btn:hover { background: #f0f0f0; }
-  .name-manage-btn:active { background: #ddd; }
-
-  /* 名簿管理モーダル */
-  .name-modal-box { max-width: 480px; }
-  .name-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    min-height: 60px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-    margin-bottom: 12px;
-    border-radius: 3px;
-  }
-  .name-list:empty::before {
-    content: '名前が登録されていません';
-    color: #999;
-    font-size: 12px;
-  }
-  .name-list-item {
-    background: #fff;
-    border: 1px solid #999;
-    padding: 5px 12px 5px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 14px;
-    position: relative;
-    padding-right: 26px;
-    user-select: none;
-    min-height: 30px;
-  }
-  .name-list-item::after {
-    content: '×';
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #c00;
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .name-list-item:hover { background: #ffe0e0; }
-  .name-add-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .name-add-row input {
-    flex: 1;
-    padding: 8px 10px;
-    border: 1px solid #888;
-    font-size: 14px;
-    font-family: inherit;
-    border-radius: 3px;
-    min-height: 38px;
-  }
-  .name-add-btn {
-    background: #0e7a3a;
-    color: #fff;
-    border: none;
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    border-radius: 3px;
-    min-height: 38px;
-  }
-  .name-add-btn:active { background: #084820; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KY活動表（危険予知活動）</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f7f9fa;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #ecf0f1;
+        }
+        .btn-group {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-primary:hover { background-color: #2980b9; }
+        .btn-success { background-color: #2ecc71; color: white; }
+        .btn-success:hover { background-color: #27ae60; }
+        .btn-danger { background-color: #e74c3c; color: white; }
+        .btn-danger:hover { background-color: #c0392b; }
+        
+        /* サインエリアのスタイル */
+        .signature-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px dashed #3498db;
+            border-radius: 6px;
+            background-color: #fafbfc;
+        }
+        .canvas-wrapper {
+            margin: 10px 0;
+        }
+        canvas {
+            border: 1px solid #7f8c8d;
+            background-color: #fff;
+            cursor: crosshair;
+            touch-action: none; /* スマホでのスクロール防止 */
+            max-width: 100%;
+        }
+        
+        /* PDF出力時にボタン非表示にする設定 */
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="toolbar">
-  <span class="toolbar-title">ＫＹ活動表</span>
-  <button onclick="saveData()">保存</button>
-  <button onclick="loadData()">読込</button>
-  <button onclick="exportJSON()">書出</button>
-  <button onclick="shareData()" class="share-btn">📤 共有</button>
-  <button onclick="importJSON()">取込</button>
-  <button onclick="clearForm()">クリア</button>
-  <button onclick="window.print()">印刷</button>
-</div>
+<div class="container" id="ky-form-area">
+    <h1>危険予知（KY）活動表</h1>
 
-<div class="sheet" id="sheet">
-  <div class="form-tag">様式-2</div>
+    <div class="section">
+        <table style="width:100%;">
+            <tr>
+                <th>日付</th>
+                <td><input type="date" id="ky-date"></td>
+                <th>作業指揮者</th>
+                <td><input type="text" id="ky-leader" placeholder="氏名を入力"></td>
+            </tr>
+            <tr>
+                <th>作業内容</th>
+                <td colspan="3"><input type="text" id="ky-work-title" placeholder="本日の作業内容"></td>
+            </tr>
+        </table>
+    </div>
 
-  <div class="title-row">
-    <span class="date-grp">
-      <input type="date" class="date-picker" id="date_picker">
-      <span class="date-display" id="date_display"></span>
-      <input type="hidden" id="month">
-      <input type="hidden" id="day">
-    </span>
-    <span>危 険 予 知 活 動 表</span>
-  </div>
+    <div class="section">
+        <h3>■ 作業従事者名簿</h3>
+        <textarea id="ky-members" rows="3" placeholder="参加者の氏名をカンマ区切り、または改行で入力してください"></textarea>
+    </div>
 
-  <div class="project-row">
-    <input type="text" id="project" value="大井川地区（東沢）直轄治山工事（R7補正）">
-  </div>
+    <div class="section">
+        <h3>■ 危険の予測と対策</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50%;">潜在する危険要因（どんな災害が起きるか）</th>
+                    <th style="width: 50%;">私たちの行動目標（私たちはこうする）</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><textarea id="danger-1" rows="3" placeholder="例: 足場が濡れており、滑って転落する恐れがある"></textarea></td>
+                    <td><textarea id="measure-1" rows="3" placeholder="例: 足元の清掃を徹底し、安全帯を必ず使用する"></textarea></td>
+                </tr>
+                <tr>
+                    <td><textarea id="danger-2" rows="3" placeholder="例: クレーン旋回時に吊り荷と激突する"></textarea></td>
+                    <td><textarea id="measure-2" rows="3" placeholder="例: 旋回範囲内への立ち入りを禁止し、合図を徹底する"></textarea></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-  <!-- 会社情報 -->
-  <table class="info-table">
-    <tr>
-      <th>会　社　名</th>
-      <td style="width:30%">
-        <input type="text" id="company" list="company-list" placeholder="選択または入力">
-        <datalist id="company-list">
-          <option value="e-works"></option>
-          <option value="田畑組"></option>
-        </datalist>
-      </td>
-      <th class="label-sm">グループ名</th>
-      <td style="width:25%"><input type="text" id="group"></td>
-      <th class="label-sm">リーダー名</th>
-      <td><input type="text" id="leader"></td>
-    </tr>
-    <tr>
-      <th>参 加 者 名<br>（サイン）</th>
-      <td colspan="5">
-        <div class="participant-cell">
-          <textarea id="participants" rows="2"></textarea>
-          <div class="name-chips" id="name-chips"></div>
-          <button type="button" class="name-manage-btn" onclick="openNameManager()">👥 名簿を管理</button>
+    <div class="section signature-container">
+        <h3>■ 確認者・指揮者サイン</h3>
+        <p style="font-size: 0.9em; color: #666; margin: 0 0 10px 0;">タッチペン、指、またはマウスで枠内に署名してください。</p>
+        <div class="canvas-wrapper">
+            <canvas id="signature-canvas" width="600" height="150"></canvas>
         </div>
-      </td>
-    </tr>
-    <tr>
-      <th>作　業　内　容</th>
-      <td colspan="5"><textarea id="work_content" rows="2"></textarea></td>
-    </tr>
-  </table>
-
-  <!-- リスク評価 -->
-  <table class="risk-table">
-    <thead>
-      <tr>
-        <th rowspan="2" class="h-big">危険のポイント</th>
-        <th colspan="3" class="h-small">リスク<br>ランク</th>
-        <th rowspan="2" class="h-big">私達はこうする</th>
-        <th colspan="3" class="h-small">対策後<br>危険度</th>
-        <th colspan="2" class="h-small">作業主任者、作業指揮者、有資格者名</th>
-      </tr>
-      <tr>
-        <th class="score-cell">①</th>
-        <th class="score-cell">②</th>
-        <th class="score-cell">①×②</th>
-        <th class="score-cell">①'</th>
-        <th class="score-cell">②'</th>
-        <th class="score-cell">①'×②'</th>
-        <th>作業に必要な資格等</th>
-        <th>氏　　　名</th>
-      </tr>
-    </thead>
-    <tbody id="risk-rows"></tbody>
-  </table>
-
-  <!-- 確認点検 -->
-  <div class="check-section">
-    <table class="check-table">
-      <thead>
-        <tr>
-          <th style="width:75%;">確認点検項目</th>
-          <th>確認欄</th>
-        </tr>
-      </thead>
-      <tbody id="check-rows"></tbody>
-    </table>
-  </div>
-
-  <!-- 凡例 -->
-  <div class="legend">
-    <div class="section-title">①. 事故区分に対応した重大性の点数評価</div>
-    <table>
-      <tr>
-        <td style="width:30%;">① 重度の災害</td>
-        <td class="score-col">10点</td>
-        <td>重度（死亡、重度後遺障害）</td>
-      </tr>
-      <tr>
-        <td>② 中度の災害</td>
-        <td class="score-col">6点</td>
-        <td>中度（休業30日を超える）</td>
-      </tr>
-      <tr>
-        <td>③ 軽度の災害</td>
-        <td class="score-col">3点</td>
-        <td>軽度（休業4日〜30日程度）</td>
-      </tr>
-      <tr>
-        <td>④ 微軽度の災害</td>
-        <td class="score-col">1点</td>
-        <td>微軽度（休業無、手当後復帰）</td>
-      </tr>
-    </table>
-
-    <div class="section-title" style="margin-top:6px;">②. 危険の発生の可能性を点数評価</div>
-    <table>
-      <tr>
-        <td style="width:30%;">① 多く発生する</td>
-        <td class="score-col">4点</td>
-        <td>多く発生する</td>
-      </tr>
-      <tr>
-        <td>② 時々発生する</td>
-        <td class="score-col">2点</td>
-        <td>時々発生する</td>
-      </tr>
-      <tr>
-        <td>③ 殆んど発生しない</td>
-        <td class="score-col">1点</td>
-        <td>殆んど発生しない</td>
-      </tr>
-    </table>
-
-    <div class="section-title" style="margin-top:6px;">4. リスクランク</div>
-    <table>
-      <tr>
-        <th class="head-row" style="width:40%;">評価値点数</th>
-        <th class="head-row" style="width:20%;">記号</th>
-        <th class="head-row">危険度</th>
-      </tr>
-      <tr>
-        <td style="text-align:center;">20点以上</td>
-        <td style="text-align:center; font-weight:700;">◎</td>
-        <td style="text-align:center;">危険大</td>
-      </tr>
-      <tr>
-        <td style="text-align:center;">10点以上20点未満</td>
-        <td style="text-align:center; font-weight:700;">○</td>
-        <td style="text-align:center;">危険中</td>
-      </tr>
-      <tr>
-        <td style="text-align:center;">3点以上10点未満</td>
-        <td style="text-align:center; font-weight:700;">△</td>
-        <td style="text-align:center;">危険小</td>
-      </tr>
-      <tr>
-        <td style="text-align:center;">3点未満</td>
-        <td style="text-align:center; font-weight:700;">□</td>
-        <td style="text-align:center;">注　意</td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- フッター -->
-  <table class="footer-table" style="margin-top:8px;">
-    <thead>
-      <tr>
-        <th style="width:70%;">元請会社に対する連絡事項、改善願いなどの記入欄</th>
-        <th>作業所長</th>
-        <th>担当者</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><textarea id="notes" rows="3"></textarea></td>
-        <td><input type="text" id="boss"></td>
-        <td><input type="text" id="staff"></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="status-msg" id="status"></div>
-
-<!-- 書出完了モーダル -->
-<div class="modal-overlay" id="export-modal" onclick="if(event.target===this)closeExportInfo()">
-  <div class="modal-box">
-    <div class="modal-title">書き出しました</div>
-    <div class="modal-body">
-      <div class="modal-label">ファイル名</div>
-      <div class="modal-filename" id="export-filename"></div>
-      <div class="modal-note">
-        端末の <strong>ダウンロード</strong> フォルダに保存されました。<br>
-        スマホの場合：「ファイル」アプリ →「ダウンロード」<br>
-        パソコンの場合：「ダウンロード」フォルダ（または「Downloads」）
-      </div>
+        <div class="btn-group no-print">
+            <button type="button" id="clear-btn" class="btn-danger">サインをクリア</button>
+        </div>
     </div>
-    <button class="modal-btn" onclick="closeExportInfo()">OK</button>
-  </div>
-</div>
 
-<!-- 名簿管理モーダル -->
-<div class="modal-overlay" id="name-modal" onclick="if(event.target===this)closeNameManager()">
-  <div class="modal-box name-modal-box">
-    <div class="modal-title">参加者 名簿管理</div>
-    <div class="modal-body">
-      <div class="modal-label">登録済みの名前（タップで削除）</div>
-      <div class="name-list" id="name-list"></div>
-      <div class="name-add-row">
-        <input type="text" id="new-name-input" placeholder="新しい名前を入力" autocomplete="off">
-        <button class="name-add-btn" onclick="addNameToList()">追加</button>
-      </div>
-      <div class="modal-note">
-        登録した名前は端末に保存され、次回も使えます。<br>
-        フォームで名前タップ → 参加者欄の末尾に「、」区切りで追加されます。
-      </div>
+    <div class="btn-group no-print">
+        <button type="button" id="pdf-btn" class="btn-success" style="font-size: 1.1em; padding: 12px 25px;">📄 PDF形式で保存（ダウンロード）</button>
+        <button type="button" id="save-data-btn" class="btn-primary">ブラウザに一時保存</button>
+        <button type="button" id="load-data-btn" class="btn-primary">一時保存から読込</button>
     </div>
-    <button class="modal-btn" onclick="closeNameManager()">閉じる</button>
-  </div>
 </div>
 
 <script>
-  const STORAGE_KEY = 'ky_form_data_v3';
-  const RISK_ROW_COUNT = 7;
-  const CHECK_ITEMS = [
-    '朝礼に参加しているか。',
-    '服装・保護具の点検は良いか。',
-    '作業員の健康状態は良いか。',
-    '有資格者の配置は良いか。',
-    '作業方法、手順は理解されているか。'
-  ];
+    window.addEventListener('DOMContentLoaded', () => {
+        // --- 1. 手書きサイン機能の制御 ---
+        const canvas = document.getElementById('signature-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
 
-  // 危険のポイント プリセット（カテゴリ別）
-  const DANGER_PRESETS = {
-    '法面施工': [
-      '法面からの墜落・転落',
-      '法面の浮石・転石の落下',
-      '法枠・ラス張り作業中の用具落下',
-      '法面崩壊・地山のはらみ出し',
-      'ロープ・吊金具の損傷による墜落',
-      '重機との接触・挟まれ',
-      '熱中症・悪天候による体調不良'
-    ],
-    '重機災害': [
-      '重機の旋回時の作業員との接触',
-      '重機の転倒・横転（不安定地盤・斜面）',
-      'バケット・アタッチメントの落下・脱落',
-      '後進時の死角による轢過事故',
-      '架空線・地中埋設物への接触・損傷'
-    ],
-    '玉掛け災害': [
-      '吊荷の落下による下敷き災害',
-      'ワイヤー・スリングの切断による落下',
-      '荷振れ・荷の回転による接触',
-      '玉掛け不良による荷崩れ',
-      '吊荷の下への立入による被災'
-    ]
-  };
+        ctx.lineWidth = 3;         // 線の太さ
+        ctx.lineCap = 'round';     // 線の角を丸く
+        ctx.strokeStyle = '#000';  // 線の色
 
-  // 対策（私達はこうする） プリセット（カテゴリ別）
-  const MEASURE_PRESETS = {
-    '法面施工': [
-      '安全帯（フルハーネス）を使用し親綱に確実にフックを掛ける',
-      '作業前に浮石・転石の点検と除去を行う',
-      '工具は落下防止紐で固定し、下方への立入禁止区域を設定する',
-      '法面の亀裂・湧水を毎日確認し異常時は直ちに退避する',
-      '使用前にロープ・金具の点検を行い、損傷品は使用しない',
-      '重機の旋回範囲を明示し、誘導員を配置し合図を徹底する',
-      'こまめな水分・塩分補給と休憩を取り、無理せず作業中止判断を行う'
-    ],
-    '重機災害対策': [
-      '旋回範囲をカラーコーン等で明示し作業員の立入を禁止する',
-      '作業前に地盤の支持力を確認し、敷鉄板等で養生する',
-      '始業前点検でピン・ボルト・配管の緩みや損傷を確認する',
-      'バック時は誘導員を配置し、警報装置の作動を確認する',
-      '架空線への離隔距離を確保し、地下埋設物は事前に試掘確認する'
-    ],
-    '玉掛け災害対策': [
-      '吊荷の真下への立入を禁止し、誘導員が安全な位置から合図する',
-      '玉掛け用具は始業前点検を行い、損傷・摩耗品は交換する',
-      '介錯ロープを使用して荷振れを防止し、ゆっくり巻上げる',
-      '有資格者が玉掛けを行い、重心・吊角度・モード係数を確認する',
-      '吊上げ前に試吊りを行い、バランスと固定状態を確認する'
-    ]
-  };
-
-  // カテゴリ別プリセットからoptgroup付きHTMLを生成
-  function buildPresetOptions(presets, placeholder) {
-    let html = `<option value="">${placeholder}</option>`;
-    let counter = 1;
-    for (const [category, items] of Object.entries(presets)) {
-      html += `<optgroup label="── ${category} ──">`;
-      for (const t of items) {
-        html += `<option value="${t}">${counter}. ${t}</option>`;
-        counter++;
-      }
-      html += `</optgroup>`;
-    }
-    return html;
-  }
-
-  function buildRiskRows() {
-    const tbody = document.getElementById('risk-rows');
-    const sevOpts = '<option value="">-</option><option value="10">10</option><option value="6">6</option><option value="3">3</option><option value="1">1</option>';
-    const probOpts = '<option value="">-</option><option value="4">4</option><option value="2">2</option><option value="1">1</option>';
-
-    const dangerOpts = buildPresetOptions(DANGER_PRESETS, '▼ プリセットから選択（危険のポイント）');
-    const measureOpts = buildPresetOptions(MEASURE_PRESETS, '▼ プリセットから選択（対策）');
-
-    for (let i = 0; i < RISK_ROW_COUNT; i++) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="danger-cell">
-          <select class="preset-select" data-target="danger_${i}">${dangerOpts}</select>
-          <textarea data-name="danger_${i}" rows="2"></textarea>
-        </td>
-        <td class="score-cell"><select data-name="sev_${i}" data-row="${i}" data-pair="before">${sevOpts}</select></td>
-        <td class="score-cell"><select data-name="prob_${i}" data-row="${i}" data-pair="before">${probOpts}</select></td>
-        <td class="score-cell risk-result" id="risk_before_${i}">-</td>
-        <td class="measure-cell">
-          <select class="preset-select" data-target="measure_${i}">${measureOpts}</select>
-          <textarea data-name="measure_${i}" rows="2"></textarea>
-        </td>
-        <td class="score-cell"><select data-name="sev2_${i}" data-row="${i}" data-pair="after">${sevOpts}</select></td>
-        <td class="score-cell"><select data-name="prob2_${i}" data-row="${i}" data-pair="after">${probOpts}</select></td>
-        <td class="score-cell risk-result" id="risk_after_${i}">-</td>
-        <td class="qual-cell"><input type="text" data-name="qual_${i}"></td>
-        <td class="name-cell"><input type="text" data-name="qname_${i}"></td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    tbody.querySelectorAll('select[data-row]').forEach(sel => {
-      sel.addEventListener('change', () => calcRisk(sel.dataset.row, sel.dataset.pair));
-    });
-
-    // プリセット選択でテキストエリアに挿入
-    tbody.querySelectorAll('.preset-select').forEach(sel => {
-      sel.addEventListener('change', () => {
-        if (!sel.value) return;
-        const ta = document.querySelector(`[data-name="${sel.dataset.target}"]`);
-        ta.value = sel.value;
-        sel.selectedIndex = 0; // リセット
-        ta.focus();
-      });
-    });
-  }
-
-  function calcRisk(row, pair) {
-    const sevName = pair === 'before' ? `sev_${row}` : `sev2_${row}`;
-    const probName = pair === 'before' ? `prob_${row}` : `prob2_${row}`;
-    const sev = document.querySelector(`[data-name="${sevName}"]`).value;
-    const prob = document.querySelector(`[data-name="${probName}"]`).value;
-    const cell = document.getElementById(`risk_${pair}_${row}`);
-
-    if (!sev || !prob) {
-      cell.textContent = '-';
-      return;
-    }
-
-    const score = parseInt(sev) * parseInt(prob);
-    let mark;
-    if (score >= 20) mark = '◎';
-    else if (score >= 10) mark = '○';
-    else if (score >= 3) mark = '△';
-    else mark = '□';
-
-    cell.textContent = `${score} ${mark}`;
-  }
-
-  function buildCheckRows() {
-    const tbody = document.getElementById('check-rows');
-    CHECK_ITEMS.forEach((item, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="check-label">${i + 1}. ${item}</td>
-        <td class="check-box" data-name="check_${i}" onclick="toggleCheck(this)">　</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function toggleCheck(td) {
-    if (td.classList.contains('checked')) {
-      td.classList.remove('checked');
-      td.textContent = '　';
-    } else {
-      td.classList.add('checked');
-      td.textContent = '✓';
-    }
-  }
-
-  function collectData() {
-    const data = {};
-    document.querySelectorAll('input[type="text"], input[type="date"], input[type="hidden"], textarea, select').forEach(el => {
-      const name = el.dataset.name || el.id;
-      if (name) data[name] = el.value;
-    });
-    document.querySelectorAll('.check-box').forEach(el => {
-      data[el.dataset.name] = el.classList.contains('checked');
-    });
-    return data;
-  }
-
-  function applyData(data) {
-    document.querySelectorAll('input[type="text"], input[type="date"], textarea, select').forEach(el => {
-      const name = el.dataset.name || el.id;
-      if (name && data[name] !== undefined) el.value = data[name];
-    });
-    document.querySelectorAll('.check-box').forEach(el => {
-      const name = el.dataset.name;
-      if (data[name]) {
-        el.classList.add('checked');
-        el.textContent = '✓';
-      } else {
-        el.classList.remove('checked');
-        el.textContent = '　';
-      }
-    });
-    for (let i = 0; i < RISK_ROW_COUNT; i++) {
-      calcRisk(i, 'before');
-      calcRisk(i, 'after');
-    }
-    // 日付表示を更新
-    if (typeof updateDateDisplay === 'function') updateDateDisplay();
-  }
-
-  function showStatus(msg) {
-    const el = document.getElementById('status');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2000);
-  }
-
-  let memoryStore = null;
-  function saveData() {
-    const data = collectData();
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      memoryStore = data;
-    }
-    showStatus('保存しました');
-  }
-
-  function loadData() {
-    let data = null;
-    try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) data = JSON.parse(raw);
-    } catch (e) {}
-    if (!data) data = memoryStore;
-    if (data) {
-      applyData(data);
-      showStatus('読み込みました');
-    } else {
-      showStatus('保存データなし');
-    }
-  }
-
-  function exportJSON() {
-    const data = collectData();
-    const meta = { _generated: new Date().toISOString(), _form: 'KY活動表', ...data };
-    const blob = new Blob([JSON.stringify(meta, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const month = data.month || '00';
-    const day = data.day || '00';
-    const filename = `KY活動表_${month}月${day}日.json`;
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    showExportInfo(filename);
-  }
-
-  function showExportInfo(filename) {
-    const modal = document.getElementById('export-modal');
-    document.getElementById('export-filename').textContent = filename;
-    modal.classList.add('show');
-  }
-
-  function closeExportInfo() {
-    document.getElementById('export-modal').classList.remove('show');
-  }
-
-  // ========= 参加者名簿管理 =========
-  const NAME_STORAGE_KEY = 'ky_name_roster_v1';
-
-  function loadNameRoster() {
-    try {
-      const raw = localStorage.getItem(NAME_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      console.warn('名簿読込失敗:', e);
-      return [];
-    }
-  }
-
-  function saveNameRoster(list) {
-    try {
-      localStorage.setItem(NAME_STORAGE_KEY, JSON.stringify(list));
-    } catch (e) {
-      console.warn('名簿保存失敗:', e);
-      alert('名簿の保存に失敗しました。ブラウザのストレージが制限されている可能性があります。');
-    }
-  }
-
-  function renderNameChips() {
-    const container = document.getElementById('name-chips');
-    const list = loadNameRoster();
-    container.innerHTML = '';
-    list.forEach(name => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'name-chip';
-      btn.textContent = name;
-      btn.onclick = () => appendNameToParticipants(name);
-      container.appendChild(btn);
-    });
-  }
-
-  function appendNameToParticipants(name) {
-    const ta = document.getElementById('participants');
-    const current = ta.value.trim();
-    if (!current) {
-      ta.value = name;
-    } else {
-      // 既に含まれているかチェック
-      const existing = current.split(/[、,\s]+/).map(s => s.trim()).filter(Boolean);
-      if (existing.includes(name)) {
-        showStatus(`「${name}」は既に追加されています`);
-        return;
-      }
-      ta.value = current + '、' + name;
-    }
-    showStatus(`「${name}」を追加`);
-  }
-
-  function openNameManager() {
-    renderNameList();
-    document.getElementById('name-modal').classList.add('show');
-    setTimeout(() => document.getElementById('new-name-input').focus(), 100);
-  }
-
-  function closeNameManager() {
-    document.getElementById('name-modal').classList.remove('show');
-  }
-
-  function renderNameList() {
-    const container = document.getElementById('name-list');
-    const list = loadNameRoster();
-    container.innerHTML = '';
-    list.forEach((name, idx) => {
-      const item = document.createElement('div');
-      item.className = 'name-list-item';
-      item.textContent = name;
-      item.title = 'クリックで削除';
-      item.onclick = () => {
-        if (confirm(`「${name}」を名簿から削除しますか？`)) {
-          const updated = loadNameRoster();
-          updated.splice(idx, 1);
-          saveNameRoster(updated);
-          renderNameList();
-          renderNameChips();
+        // 座標取得関数（PC/スマホ両対応）
+        function getEventPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches && e.touches.length > 0) {
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            } else {
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
         }
-      };
-      container.appendChild(item);
-    });
-  }
 
-  function addNameToList() {
-    const input = document.getElementById('new-name-input');
-    const name = input.value.trim();
-    if (!name) {
-      input.focus();
-      return;
-    }
-    const list = loadNameRoster();
-    if (list.includes(name)) {
-      alert(`「${name}」は既に登録されています`);
-      input.select();
-      return;
-    }
-    list.push(name);
-    saveNameRoster(list);
-    input.value = '';
-    renderNameList();
-    renderNameChips();
-    input.focus();
-  }
-  // ========= 名簿管理 ここまで =========
-
-  async function shareData() {
-    const data = collectData();
-    const meta = { _generated: new Date().toISOString(), _form: 'KY活動表', ...data };
-    const month = data.month || '00';
-    const day = data.day || '00';
-    const filename = `KY活動表_${month}月${day}日.json`;
-    const jsonText = JSON.stringify(meta, null, 2);
-
-    // ファイル添付で共有を試みる（最も確実にPCに送れる）
-    try {
-      const file = new File([jsonText], filename, { type: 'application/json' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'KY活動表',
-          text: `${filename} を共有します`
-        });
-        showStatus('共有しました');
-        return;
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') return; // ユーザーがキャンセル
-      console.warn('File share failed, falling back:', e);
-    }
-
-    // ファイル共有が使えない場合：テキスト共有
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'KY活動表',
-          text: jsonText
-        });
-        showStatus('共有しました');
-        return;
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-      console.warn('Text share failed:', e);
-    }
-
-    // どちらも使えない場合（多くのPCブラウザ）：書出にフォールバック
-    alert('この端末では共有機能が使えません。\n代わりに「書出」でJSONファイルを保存してください。');
-  }
-
-  function importJSON() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          applyData(JSON.parse(ev.target.result));
-          showStatus('取り込みました');
-        } catch (err) {
-          showStatus('読み込み失敗');
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getEventPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            if(e.cancelable) e.preventDefault();
         }
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  }
 
-  function clearForm() {
-    if (!confirm('入力内容をすべてクリアしますか？')) return;
-    document.querySelectorAll('input[type="text"], textarea, select').forEach(el => {
-      if (el.id === 'project') return;
-      el.value = '';
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getEventPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            if(e.cancelable) e.preventDefault();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // マウスイベント (PC)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDrawing);
+
+        // タッチイベント (スマホ・タブレット・タッチペン)
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // サインクリア機能
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+
+        // --- 2. PDF保存機能（html2pdf.js） ---
+        document.getElementById('pdf-btn').addEventListener('click', () => {
+            const element = document.getElementById('ky-form-area');
+            
+            // 操作ボタンなどを一時的に隠してPDF化するオプション
+            const opt = {
+                margin:       10,
+                filename:     'KY活動表.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // PDF生成を実行
+            html2pdf().set(opt).from(element).save();
+        });
+
+
+        // --- 3. ブラウザへのテキスト一時保存・読込機能（LocalStorage） ---
+        document.getElementById('save-data-btn').addEventListener('click', () => {
+            const kyData = {
+                date: document.getElementById('ky-date').value,
+                leader: document.getElementById('ky-leader').value,
+                workTitle: document.getElementById('ky-work-title').value,
+                members: document.getElementById('ky-members').value,
+                danger1: document.getElementById('danger-1').value,
+                measure1: document.getElementById('measure-1').value,
+                danger2: document.getElementById('danger-2').value,
+                measure2: document.getElementById('measure-2').value,
+                // サインも画像化してデータ保存
+                signature: canvas.toDataURL()
+            };
+            localStorage.setItem('ky_activity_data', JSON.stringify(kyData));
+            alert('ブラウザにデータを一時保存しました。');
+        });
+
+        document.getElementById('load-data-btn').addEventListener('click', () => {
+            const savedData = localStorage.getItem('ky_activity_data');
+            if (!savedData) {
+                alert('保存されたデータが見つかりません。');
+                return;
+            }
+            const kyData = JSON.parse(savedData);
+            document.getElementById('ky-date').value = kyData.date || '';
+            document.getElementById('ky-leader').value = kyData.leader || '';
+            document.getElementById('ky-work-title').value = kyData.workTitle || '';
+            document.getElementById('ky-members').value = kyData.members || '';
+            document.getElementById('danger-1').value = kyData.danger1 || '';
+            document.getElementById('measure-1').value = kyData.measure1 || '';
+            document.getElementById('danger-2').value = kyData.danger2 || '';
+            document.getElementById('measure-2').value = kyData.measure2 || '';
+            
+            // サインの復元
+            if (kyData.signature) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = kyData.signature;
+            }
+            alert('データを読み込みました。');
+        });
     });
-    document.querySelectorAll('.check-box').forEach(el => {
-      el.classList.remove('checked');
-      el.textContent = '　';
-    });
-    for (let i = 0; i < RISK_ROW_COUNT; i++) {
-      calcRisk(i, 'before');
-      calcRisk(i, 'after');
-    }
-    // 日付は今日に戻す
-    const t = new Date();
-    const y = t.getFullYear();
-    const m = String(t.getMonth() + 1).padStart(2, '0');
-    const d = String(t.getDate()).padStart(2, '0');
-    datePicker.value = `${y}-${m}-${d}`;
-    updateDateDisplay();
-    showStatus('クリアしました');
-  }
-
-  buildRiskRows();
-  buildCheckRows();
-
-  // 日付ピッカー初期化
-  const datePicker = document.getElementById('date_picker');
-  const dateDisplay = document.getElementById('date_display');
-  const monthHidden = document.getElementById('month');
-  const dayHidden = document.getElementById('day');
-
-  function updateDateDisplay() {
-    const v = datePicker.value; // YYYY-MM-DD
-    if (!v) {
-      dateDisplay.textContent = '';
-      monthHidden.value = '';
-      dayHidden.value = '';
-      return;
-    }
-    const parts = v.split('-');
-    const m = parseInt(parts[1], 10);
-    const d = parseInt(parts[2], 10);
-    dateDisplay.textContent = `${m}月${d}日`;
-    monthHidden.value = m;
-    dayHidden.value = d;
-  }
-
-  datePicker.addEventListener('change', updateDateDisplay);
-  datePicker.addEventListener('input', updateDateDisplay);
-
-  // 今日の日付をセット
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  datePicker.value = `${yyyy}-${mm}-${dd}`;
-  updateDateDisplay();
-
-  // 名簿チップを初期表示
-  renderNameChips();
-
-  // 名簿ダイアログの入力欄でEnterキーで追加
-  document.getElementById('new-name-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addNameToList();
-    }
-  });
 </script>
+
 </body>
 </html>
