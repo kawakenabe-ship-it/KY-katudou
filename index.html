@@ -176,6 +176,137 @@
     font-size: 12px;
   }
 
+  /* 会社名 入力＋管理ボタン */
+  .company-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .company-cell input { flex: 1; }
+  .company-manage-btn {
+    flex: none;
+    border: 1px solid #888;
+    background: #f2f2f2;
+    color: #333;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 6px;
+    min-height: 24px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .company-manage-btn:hover { background: #e4e4e4; }
+
+  /* 会社名管理パネル（モーダル） */
+  .company-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .company-modal-overlay.show { display: flex; }
+  .company-modal {
+    background: #fff;
+    width: 320px;
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .company-modal h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .company-modal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    max-height: 240px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  .company-modal-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #eee;
+  }
+  .company-modal-list li:last-child { border-bottom: none; }
+  .company-modal-list .del-btn {
+    flex: none;
+    border: 1px solid #c33;
+    background: #fff;
+    color: #c33;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    min-height: 24px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: inherit;
+  }
+  .company-modal-list .del-btn:hover { background: #c33; color: #fff; }
+  .company-modal-empty { padding: 10px; font-size: 12px; color: #888; text-align: center; }
+  .company-modal-add {
+    display: flex;
+    gap: 6px;
+  }
+  .company-modal-add input {
+    flex: 1;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    min-height: 34px;
+  }
+  .company-modal-add button {
+    flex: none;
+    border: 1px solid #0a5a2a;
+    background: #0e7a3a;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 12px;
+    min-height: 34px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+  .company-modal-add button:hover { background: #0a5a2a; }
+  .company-modal-close {
+    align-self: flex-end;
+    border: 1px solid #888;
+    background: #f2f2f2;
+    color: #333;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    min-height: 32px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+  .company-modal-close:hover { background: #e4e4e4; }
+
+  @media print {
+    .company-manage-btn { display: none !important; }
+    .company-modal-overlay { display: none !important; }
+  }
+
   /* 入力フィールド共通 */
   input[type="text"], textarea, select {
     width: 100%;
@@ -589,6 +720,7 @@
   <button onclick="saveData()">一時保存</button>
   <button onclick="loadData()">読込</button>
   <button onclick="clearForm()">クリア</button>
+  <button onclick="window.print()" id="print-btn">🖨️ 印刷</button>
   <button onclick="savePDF()" class="share-btn" id="pdf-btn">📄 PDFで保存</button>
 </div>
 
@@ -606,7 +738,11 @@
   </div>
 
   <div class="project-row">
-    <input type="text" id="project" value="大井川地区（東沢）直轄治山工事（R7補正）">
+    <input type="text" id="project" list="project-list" value="大井川地区（東沢）直轄治山工事（R7補正）" autocomplete="off">
+    <datalist id="project-list">
+      <option value="大井川地区（東沢）直轄治山工事（R7補正）">
+      <option value="大井川（ホーキ薙）直轄治山工事（R8　二箇年国債）">
+    </datalist>
   </div>
 
   <!-- 会社情報 -->
@@ -614,11 +750,11 @@
     <tr>
       <th>会　社　名</th>
       <td style="width:30%">
-        <input type="text" id="company" list="company-list" placeholder="選択または入力">
-        <datalist id="company-list">
-          <option value="e-works"></option>
-          <option value="田畑組"></option>
-        </datalist>
+        <div class="company-cell">
+          <input type="text" id="company" list="company-list" placeholder="選択または入力">
+          <button type="button" class="company-manage-btn" onclick="openCompanyModal()">会社名編集</button>
+        </div>
+        <datalist id="company-list"></datalist>
       </td>
       <th class="label-sm">グループ名</th>
       <td style="width:25%"><input type="text" id="group"></td>
@@ -777,11 +913,131 @@
 
 <!-- 書出完了モーダルはPDF化に伴い削除済み -->
 
-<!-- 名簿管理モーダルは手書きサイン化に伴い削除済み -->
+<!-- 会社名管理モーダル -->
+<div class="company-modal-overlay" id="company-modal-overlay">
+  <div class="company-modal">
+    <h3>会社名の管理</h3>
+    <ul class="company-modal-list" id="company-modal-list"></ul>
+    <div class="company-modal-add">
+      <input type="text" id="company-modal-input" placeholder="新しい会社名を入力">
+      <button type="button" onclick="addCompanyName()">追加</button>
+    </div>
+    <button type="button" class="company-modal-close" onclick="closeCompanyModal()">閉じる</button>
+  </div>
+</div>
 
 <script>
   const STORAGE_KEY = 'ky_form_data_v3';
   const RISK_ROW_COUNT = 7;
+
+  // ========= 会社名リスト管理 =========
+  const COMPANY_LIST_KEY = 'ky_company_list_v1';
+  const DEFAULT_COMPANY_LIST = ['e-works', '田畑組'];
+
+  function loadCompanyList() {
+    try {
+      const raw = localStorage.getItem(COMPANY_LIST_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) {}
+    return DEFAULT_COMPANY_LIST.slice();
+  }
+
+  function saveCompanyList(list) {
+    try {
+      localStorage.setItem(COMPANY_LIST_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  let companyList = loadCompanyList();
+
+  function renderCompanyDatalist() {
+    const datalist = document.getElementById('company-list');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    companyList.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      datalist.appendChild(opt);
+    });
+  }
+
+  function renderCompanyModalList() {
+    const ul = document.getElementById('company-modal-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (companyList.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'company-modal-empty';
+      li.textContent = '登録された会社名がありません';
+      ul.appendChild(li);
+      return;
+    }
+    companyList.forEach((name, idx) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = name;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'del-btn';
+      btn.textContent = '削除';
+      btn.onclick = () => deleteCompanyName(idx);
+      li.appendChild(span);
+      li.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  function addCompanyName() {
+    const input = document.getElementById('company-modal-input');
+    const name = input.value.trim();
+    if (!name) return;
+    if (companyList.includes(name)) {
+      showStatus('すでに登録されています');
+      input.value = '';
+      return;
+    }
+    companyList.push(name);
+    saveCompanyList(companyList);
+    renderCompanyDatalist();
+    renderCompanyModalList();
+    input.value = '';
+    input.focus();
+  }
+
+  function deleteCompanyName(idx) {
+    const name = companyList[idx];
+    if (!confirm(`「${name}」を削除しますか？`)) return;
+    companyList.splice(idx, 1);
+    saveCompanyList(companyList);
+    renderCompanyDatalist();
+    renderCompanyModalList();
+  }
+
+  function openCompanyModal() {
+    renderCompanyModalList();
+    document.getElementById('company-modal-overlay').classList.add('show');
+  }
+
+  function closeCompanyModal() {
+    document.getElementById('company-modal-overlay').classList.remove('show');
+  }
+
+  document.getElementById('company-modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'company-modal-overlay') closeCompanyModal();
+  });
+
+  document.getElementById('company-modal-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCompanyName();
+    }
+  });
+
+  renderCompanyDatalist();
+  // ========= 会社名リスト管理 ここまで =========
   const CHECK_ITEMS = [
     '朝礼に参加しているか。',
     '服装・保護具の点検は良いか。',
