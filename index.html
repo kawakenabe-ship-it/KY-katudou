@@ -132,16 +132,42 @@
     font-weight: 700;
     font-size: 18px;
   }
-  .project-row input {
-    width: 100%;
+  .project-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .project-cell select {
+    flex: 1;
     border: none;
     text-align: center;
+    text-align-last: center;
     font-weight: 700;
     font-size: 18px;
     font-family: inherit;
     background: transparent;
   }
-  .project-row input:focus { outline: none; background: var(--hover); }
+  .project-cell select:focus { outline: none; background: var(--hover); }
+  .project-manage-btn {
+    flex: none;
+    border: 1px solid #888;
+    background: #f2f2f2;
+    color: #333;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 6px;
+    min-height: 24px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .project-manage-btn:hover { background: #e4e4e4; }
+  @media print {
+    .project-manage-btn { display: none !important; }
+  }
+  body.pdf-rendering .project-manage-btn { display: none !important; }
 
   table {
     width: 100%;
@@ -198,6 +224,34 @@
     white-space: nowrap;
   }
   .company-manage-btn:hover { background: #e4e4e4; }
+
+  /* 資格等 見出し＋編集ボタン */
+  .qual-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .qual-manage-btn {
+    flex: none;
+    border: 1px solid #888;
+    background: #f2f2f2;
+    color: #333;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    min-height: 20px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .qual-manage-btn:hover { background: #e4e4e4; }
+  @media print {
+    .qual-manage-btn { display: none !important; }
+  }
+  body.pdf-rendering .qual-manage-btn { display: none !important; }
 
   /* 会社名管理パネル（モーダル） */
   .company-modal-overlay {
@@ -259,6 +313,30 @@
     font-family: inherit;
   }
   .company-modal-list .del-btn:hover { background: #c33; color: #fff; }
+  .company-modal-list .edit-btn {
+    flex: none;
+    border: 1px solid #0a5a2a;
+    background: #fff;
+    color: #0a5a2a;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    min-height: 24px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: inherit;
+    margin-right: 4px;
+  }
+  .company-modal-list .edit-btn:hover { background: #0a5a2a; color: #fff; }
+  .company-modal-list .item-edit-input {
+    flex: 1;
+    border: 1px solid #0a5a2a;
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-size: 13px;
+    font-family: inherit;
+    margin-right: 6px;
+  }
   .company-modal-empty { padding: 10px; font-size: 12px; color: #888; text-align: center; }
   .company-modal-add {
     display: flex;
@@ -401,21 +479,24 @@
 
   /* 確認点検（リスク表の右側に重なる） */
   .check-section {
-    margin-top: 8px;
+    margin-top: 6px;
   }
   .check-table th {
-    font-size: 13px;
+    font-size: 12px;
+    padding: 3px 6px;
   }
   .check-table td.check-label {
     text-align: left;
-    font-size: 13px;
+    font-size: 12px;
+    padding: 3px 6px;
   }
   .check-table td.check-box {
-    width: 80px;
+    width: 70px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 16px;
     user-select: none;
-    height: 36px;
+    height: 24px;
+    padding: 2px 6px;
   }
   .check-table td.check-box.checked {
     font-weight: 700;
@@ -426,21 +507,32 @@
 
   /* 凡例（重大性・可能性・リスクランク） */
   .legend {
-    margin-top: 8px;
+    margin-top: 6px;
+  }
+  .legend-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .legend-col {
+    flex: 1;
+    min-width: 0;
   }
   .legend table {
     width: 100%;
+    margin-top: -1.5px;
   }
   .legend th, .legend td {
-    font-size: 12px;
-    padding: 3px 6px;
+    font-size: 11px;
+    padding: 2px 5px;
     text-align: left;
+    line-height: 1.25;
   }
   .legend th {
     font-weight: 700;
   }
   .legend .score-col {
-    width: 90px;
+    width: 44px;
     text-align: center;
   }
   .legend .head-row th {
@@ -448,13 +540,16 @@
     background: #fff;
   }
   .legend .section-title {
-    font-size: 12px;
+    font-size: 11px;
     text-align: left;
     background: #fff;
     border: 1.5px solid var(--line);
     border-bottom: none;
-    padding: 3px 6px;
+    padding: 2px 5px;
     font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* フッター */
@@ -500,7 +595,7 @@
   body.pdf-rendering .title-row .date-grp { font-size: 13px; }
   body.pdf-rendering .title-row .date-display { font-size: 13px; min-width: 70px; }
   body.pdf-rendering .project-row { font-size: 13px; padding: 2px 6px; }
-  body.pdf-rendering .project-row input { font-size: 13px !important; }
+  body.pdf-rendering .project-cell select { font-size: 13px !important; }
   body.pdf-rendering th,
   body.pdf-rendering td { padding: 1px 3px !important; }
   body.pdf-rendering .info-table th,
@@ -512,8 +607,9 @@
   body.pdf-rendering .risk-result { font-size: 10px !important; }
   body.pdf-rendering .check-section { margin-top: 2px; }
   body.pdf-rendering .check-table td.check-label { font-size: 9px; }
-  body.pdf-rendering .check-table td.check-box { font-size: 12px; height: 18px !important; }
+  body.pdf-rendering .check-table td.check-box { font-size: 11px; height: 16px !important; }
   body.pdf-rendering .legend { margin-top: 2px; }
+  body.pdf-rendering .legend-row { gap: 4px; }
   body.pdf-rendering .legend th,
   body.pdf-rendering .legend td { font-size: 8px; padding: 1px 4px !important; }
   body.pdf-rendering .legend .section-title { font-size: 8.5px; padding: 1px 4px; }
@@ -535,7 +631,7 @@
       margin: 0;
       max-width: none;
       width: 100%;
-      padding: 2mm 3mm;
+      padding: 1.5mm 1.5mm;
     }
     input, textarea, select {
       background: transparent !important;
@@ -558,7 +654,7 @@
     .title-row .date-grp { font-size: 13px; }
     .title-row .date-display { font-size: 13px; min-width: 70px; }
     .project-row { font-size: 13px; padding: 2px 6px; }
-    .project-row input { font-size: 13px !important; }
+    .project-cell select { font-size: 13px !important; }
 
     /* テーブル全般 */
     th, td { padding: 1px 3px !important; }
@@ -574,10 +670,11 @@
     /* 確認点検 */
     .check-section { margin-top: 2px; }
     .check-table td.check-label { font-size: 9px; }
-    .check-table td.check-box { font-size: 12px; height: 18px !important; }
+    .check-table td.check-box { font-size: 11px; height: 16px !important; }
 
     /* 凡例 */
     .legend { margin-top: 2px; }
+    .legend-row { gap: 4px; }
     .legend th, .legend td { font-size: 8px; padding: 1px 4px !important; }
     .legend .section-title { font-size: 8.5px; padding: 1px 4px; }
 
@@ -596,7 +693,7 @@
     .signature-eraser-btn { display: none !important; }
     .signature-hint { display: none !important; }
 
-    @page { size: A4 landscape; margin: 4mm; }
+    @page { size: A4 landscape; margin: 5mm; }
   }
 
   /* モバイル */
@@ -609,7 +706,7 @@
     .title-row input.date-picker { font-size: 14px; min-height: 34px; }
     .title-row .date-display { font-size: 16px; min-width: 90px; }
     .project-row { font-size: 14px; padding: 6px; }
-    .project-row input { font-size: 14px; }
+    .project-cell select { font-size: 14px; }
     th, td { padding: 3px 2px; font-size: 11px; }
     .risk-table .h-big { font-size: 13px; }
     .risk-table td { height: 40px; }
@@ -738,11 +835,10 @@
   </div>
 
   <div class="project-row">
-    <input type="text" id="project" list="project-list" value="大井川地区（東沢）直轄治山工事（R7補正）" autocomplete="off">
-    <datalist id="project-list">
-      <option value="大井川地区（東沢）直轄治山工事（R7補正）">
-      <option value="大井川（ホーキ薙）直轄治山工事（R8　二箇年国債）">
-    </datalist>
+    <div class="project-cell">
+      <select id="project"></select>
+      <button type="button" class="project-manage-btn" onclick="openProjectModal()">現場名編集</button>
+    </div>
   </div>
 
   <!-- 会社情報 -->
@@ -795,8 +891,18 @@
         <th class="score-cell">①'</th>
         <th class="score-cell">②'</th>
         <th class="score-cell">①'×②'</th>
-        <th>作業に必要な資格等</th>
-        <th>氏　　　名</th>
+        <th>
+          <div class="qual-header">
+            <span>作業に必要な資格等</span>
+            <button type="button" class="qual-manage-btn" onclick="openQualModal()">資格編集</button>
+          </div>
+        </th>
+        <th>
+          <div class="qual-header">
+            <span>氏　　　名</span>
+            <button type="button" class="qual-manage-btn" onclick="openNameModal()">氏名編集</button>
+          </div>
+        </th>
       </tr>
     </thead>
     <tbody id="risk-rows"></tbody>
@@ -817,77 +923,85 @@
 
   <!-- 凡例 -->
   <div class="legend">
-    <div class="section-title">①. 事故区分に対応した重大性の点数評価</div>
-    <table>
-      <tr>
-        <td style="width:30%;">① 重度の災害</td>
-        <td class="score-col">10点</td>
-        <td>重度（死亡、重度後遺障害）</td>
-      </tr>
-      <tr>
-        <td>② 中度の災害</td>
-        <td class="score-col">6点</td>
-        <td>中度（休業30日を超える）</td>
-      </tr>
-      <tr>
-        <td>③ 軽度の災害</td>
-        <td class="score-col">3点</td>
-        <td>軽度（休業4日〜30日程度）</td>
-      </tr>
-      <tr>
-        <td>④ 微軽度の災害</td>
-        <td class="score-col">1点</td>
-        <td>微軽度（休業無、手当後復帰）</td>
-      </tr>
-    </table>
+    <div class="legend-row">
+      <div class="legend-col">
+        <div class="section-title">①. 事故区分に対応した重大性の点数評価</div>
+        <table>
+          <tr>
+            <td style="width:32%;">① 重度の災害</td>
+            <td class="score-col">10点</td>
+            <td>重度（死亡、重度後遺障害）</td>
+          </tr>
+          <tr>
+            <td>② 中度の災害</td>
+            <td class="score-col">6点</td>
+            <td>中度（休業30日を超える）</td>
+          </tr>
+          <tr>
+            <td>③ 軽度の災害</td>
+            <td class="score-col">3点</td>
+            <td>軽度（休業4日〜30日程度）</td>
+          </tr>
+          <tr>
+            <td>④ 微軽度の災害</td>
+            <td class="score-col">1点</td>
+            <td>微軽度（休業無、手当後復帰）</td>
+          </tr>
+        </table>
+      </div>
 
-    <div class="section-title" style="margin-top:6px;">②. 危険の発生の可能性を点数評価</div>
-    <table>
-      <tr>
-        <td style="width:30%;">① 多く発生する</td>
-        <td class="score-col">4点</td>
-        <td>多く発生する</td>
-      </tr>
-      <tr>
-        <td>② 時々発生する</td>
-        <td class="score-col">2点</td>
-        <td>時々発生する</td>
-      </tr>
-      <tr>
-        <td>③ 殆んど発生しない</td>
-        <td class="score-col">1点</td>
-        <td>殆んど発生しない</td>
-      </tr>
-    </table>
+      <div class="legend-col">
+        <div class="section-title">②. 危険の発生の可能性を点数評価</div>
+        <table>
+          <tr>
+            <td style="width:40%;">① 多く発生する</td>
+            <td class="score-col">4点</td>
+            <td>多く発生する</td>
+          </tr>
+          <tr>
+            <td>② 時々発生する</td>
+            <td class="score-col">2点</td>
+            <td>時々発生する</td>
+          </tr>
+          <tr>
+            <td>③ 殆んど発生しない</td>
+            <td class="score-col">1点</td>
+            <td>殆んど発生しない</td>
+          </tr>
+        </table>
+      </div>
 
-    <div class="section-title" style="margin-top:6px;">4. リスクランク</div>
-    <table>
-      <tr>
-        <th class="head-row" style="width:40%;">評価値点数</th>
-        <th class="head-row" style="width:20%;">記号</th>
-        <th class="head-row">危険度</th>
-      </tr>
-      <tr>
-        <td style="text-align:center;">20点以上</td>
-        <td style="text-align:center; font-weight:700;">◎</td>
-        <td style="text-align:center;">危険大</td>
-      </tr>
-      <tr>
-        <td style="text-align:center;">10点以上20点未満</td>
-        <td style="text-align:center; font-weight:700;">○</td>
-        <td style="text-align:center;">危険中</td>
-      </tr>
-      <tr>
-        <td style="text-align:center;">3点以上10点未満</td>
-        <td style="text-align:center; font-weight:700;">△</td>
-        <td style="text-align:center;">危険小</td>
-      </tr>
-      <tr>
-        <td style="text-align:center;">3点未満</td>
-        <td style="text-align:center; font-weight:700;">□</td>
-        <td style="text-align:center;">注　意</td>
-      </tr>
-    </table>
+      <div class="legend-col">
+        <div class="section-title">③. リスクランク</div>
+        <table>
+          <tr>
+            <th class="head-row" style="width:44%;">評価値点数</th>
+            <th class="head-row" style="width:18%;">記号</th>
+            <th class="head-row">危険度</th>
+          </tr>
+          <tr>
+            <td style="text-align:center;">20点以上</td>
+            <td style="text-align:center; font-weight:700;">◎</td>
+            <td style="text-align:center;">危険大</td>
+          </tr>
+          <tr>
+            <td style="text-align:center;">10点以上20点未満</td>
+            <td style="text-align:center; font-weight:700;">○</td>
+            <td style="text-align:center;">危険中</td>
+          </tr>
+          <tr>
+            <td style="text-align:center;">3点以上10点未満</td>
+            <td style="text-align:center; font-weight:700;">△</td>
+            <td style="text-align:center;">危険小</td>
+          </tr>
+          <tr>
+            <td style="text-align:center;">3点未満</td>
+            <td style="text-align:center; font-weight:700;">□</td>
+            <td style="text-align:center;">注　意</td>
+          </tr>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- フッター -->
@@ -923,6 +1037,45 @@
       <button type="button" onclick="addCompanyName()">追加</button>
     </div>
     <button type="button" class="company-modal-close" onclick="closeCompanyModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- 資格等管理モーダル -->
+<div class="company-modal-overlay" id="qual-modal-overlay">
+  <div class="company-modal">
+    <h3>資格等の管理</h3>
+    <ul class="company-modal-list" id="qual-modal-list"></ul>
+    <div class="company-modal-add">
+      <input type="text" id="qual-modal-input" placeholder="新しい資格名を入力">
+      <button type="button" onclick="addQualName()">追加</button>
+    </div>
+    <button type="button" class="company-modal-close" onclick="closeQualModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- 現場名管理モーダル -->
+<div class="company-modal-overlay" id="project-modal-overlay">
+  <div class="company-modal">
+    <h3>現場名の管理</h3>
+    <ul class="company-modal-list" id="project-modal-list"></ul>
+    <div class="company-modal-add">
+      <input type="text" id="project-modal-input" placeholder="新しい現場名を入力">
+      <button type="button" onclick="addProjectName()">追加</button>
+    </div>
+    <button type="button" class="company-modal-close" onclick="closeProjectModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- 氏名管理モーダル -->
+<div class="company-modal-overlay" id="name-modal-overlay">
+  <div class="company-modal">
+    <h3>氏名の管理</h3>
+    <ul class="company-modal-list" id="name-modal-list"></ul>
+    <div class="company-modal-add">
+      <input type="text" id="name-modal-input" placeholder="新しい氏名を入力">
+      <button type="button" onclick="addPersonName()">追加</button>
+    </div>
+    <button type="button" class="company-modal-close" onclick="closeNameModal()">閉じる</button>
   </div>
 </div>
 
@@ -1038,6 +1191,493 @@
 
   renderCompanyDatalist();
   // ========= 会社名リスト管理 ここまで =========
+
+  // ========= 資格等リスト管理 =========
+  const QUAL_LIST_KEY = 'ky_qual_list_v1';
+  const DEFAULT_QUAL_LIST = ['車両系建設機械', '玉掛け', '移動式クレーン'];
+
+  function loadQualList() {
+    try {
+      const raw = localStorage.getItem(QUAL_LIST_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) {}
+    return DEFAULT_QUAL_LIST.slice();
+  }
+
+  function saveQualList(list) {
+    try {
+      localStorage.setItem(QUAL_LIST_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  let qualList = loadQualList();
+
+  function buildQualOptions() {
+    let html = '<option value="">選択</option>';
+    qualList.forEach(name => {
+      html += `<option value="${name}">${name}</option>`;
+    });
+    return html;
+  }
+
+  // 資格等のプルダウンをリストの最新状態に合わせて再描画（選択済みの値は保持）
+  function renderQualSelects() {
+    const opts = buildQualOptions();
+    document.querySelectorAll('select.qual-select').forEach(sel => {
+      const current = sel.value;
+      sel.innerHTML = opts;
+      if (current && qualList.includes(current)) {
+        sel.value = current;
+      } else if (current) {
+        // リストに無いが入力済みの値は選択肢として一時的に残す
+        const opt = document.createElement('option');
+        opt.value = current;
+        opt.textContent = current;
+        opt.selected = true;
+        sel.appendChild(opt);
+      }
+    });
+  }
+
+  function renderQualModalList() {
+    const ul = document.getElementById('qual-modal-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (qualList.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'company-modal-empty';
+      li.textContent = '登録された資格がありません';
+      ul.appendChild(li);
+      return;
+    }
+    qualList.forEach((name, idx) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = name;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'del-btn';
+      btn.textContent = '削除';
+      btn.onclick = () => deleteQualName(idx);
+      li.appendChild(span);
+      li.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  function addQualName() {
+    const input = document.getElementById('qual-modal-input');
+    const name = input.value.trim();
+    if (!name) return;
+    if (qualList.includes(name)) {
+      showStatus('すでに登録されています');
+      input.value = '';
+      return;
+    }
+    qualList.push(name);
+    saveQualList(qualList);
+    renderQualSelects();
+    renderQualModalList();
+    input.value = '';
+    input.focus();
+  }
+
+  function deleteQualName(idx) {
+    const name = qualList[idx];
+    if (!confirm(`「${name}」を削除しますか？`)) return;
+    qualList.splice(idx, 1);
+    saveQualList(qualList);
+    renderQualSelects();
+    renderQualModalList();
+  }
+
+  function openQualModal() {
+    renderQualModalList();
+    document.getElementById('qual-modal-overlay').classList.add('show');
+  }
+
+  function closeQualModal() {
+    document.getElementById('qual-modal-overlay').classList.remove('show');
+  }
+
+  document.getElementById('qual-modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'qual-modal-overlay') closeQualModal();
+  });
+
+  document.getElementById('qual-modal-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addQualName();
+    }
+  });
+  // ========= 資格等リスト管理 ここまで =========
+
+  // ========= 現場名リスト管理 =========
+  const PROJECT_LIST_KEY = 'ky_project_list_v1';
+  const DEFAULT_PROJECT_LIST = [
+    '大井川地区（東沢）直轄治山工事（R7補正）',
+    '大井川地区（ホーキ薙）直轄治山工事（R8　２箇年国債）'
+  ];
+
+  function loadProjectList() {
+    try {
+      const raw = localStorage.getItem(PROJECT_LIST_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length > 0) return arr;
+      }
+    } catch (e) {}
+    return DEFAULT_PROJECT_LIST.slice();
+  }
+
+  function saveProjectList(list) {
+    try {
+      localStorage.setItem(PROJECT_LIST_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  let projectList = loadProjectList();
+
+  // 現場名プルダウンを最新のリストで再描画（選択中の値は保持）
+  function renderProjectSelect(selectValue) {
+    const sel = document.getElementById('project');
+    if (!sel) return;
+    const current = selectValue !== undefined ? selectValue : sel.value;
+    sel.innerHTML = '';
+    projectList.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    if (current && projectList.includes(current)) {
+      sel.value = current;
+    } else if (current) {
+      const opt = document.createElement('option');
+      opt.value = current;
+      opt.textContent = current;
+      opt.selected = true;
+      sel.appendChild(opt);
+    } else if (projectList.length > 0) {
+      sel.value = projectList[0];
+    }
+  }
+
+  function renderProjectModalList() {
+    const ul = document.getElementById('project-modal-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (projectList.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'company-modal-empty';
+      li.textContent = '登録された現場名がありません';
+      ul.appendChild(li);
+      return;
+    }
+    projectList.forEach((name, idx) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = name;
+      span.style.wordBreak = 'break-all';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'edit-btn';
+      editBtn.textContent = '編集';
+      editBtn.onclick = () => startEditProjectName(li, idx);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'del-btn';
+      delBtn.textContent = '削除';
+      delBtn.onclick = () => deleteProjectName(idx);
+
+      const btnWrap = document.createElement('div');
+      btnWrap.style.display = 'flex';
+      btnWrap.style.flex = 'none';
+      btnWrap.appendChild(editBtn);
+      btnWrap.appendChild(delBtn);
+
+      li.appendChild(span);
+      li.appendChild(btnWrap);
+      ul.appendChild(li);
+    });
+  }
+
+  // 一覧内の項目をその場でテキスト入力に切り替えて編集
+  function startEditProjectName(li, idx) {
+    li.innerHTML = '';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'item-edit-input';
+    input.value = projectList[idx];
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'edit-btn';
+    saveBtn.textContent = '保存';
+    saveBtn.onclick = () => finishEditProjectName(idx, input.value);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        finishEditProjectName(idx, input.value);
+      }
+    });
+
+    li.appendChild(input);
+    li.appendChild(saveBtn);
+    input.focus();
+    input.select();
+  }
+
+  function finishEditProjectName(idx, newValue) {
+    const name = newValue.trim();
+    if (!name) {
+      showStatus('現場名を入力してください');
+      renderProjectModalList();
+      return;
+    }
+    const oldName = projectList[idx];
+    projectList[idx] = name;
+    saveProjectList(projectList);
+    // 編集中の現場名がプルダウンで選択されていた場合は追従させる
+    const sel = document.getElementById('project');
+    const wasSelected = sel && sel.value === oldName;
+    renderProjectSelect(wasSelected ? name : undefined);
+    renderProjectModalList();
+    showStatus('現場名を更新しました');
+  }
+
+  function addProjectName() {
+    const input = document.getElementById('project-modal-input');
+    const name = input.value.trim();
+    if (!name) return;
+    if (projectList.includes(name)) {
+      showStatus('すでに登録されています');
+      input.value = '';
+      return;
+    }
+    projectList.push(name);
+    saveProjectList(projectList);
+    renderProjectSelect();
+    renderProjectModalList();
+    input.value = '';
+    input.focus();
+  }
+
+  function deleteProjectName(idx) {
+    const name = projectList[idx];
+    if (!confirm(`「${name}」を削除しますか？`)) return;
+    const sel = document.getElementById('project');
+    const wasSelected = sel && sel.value === name;
+    projectList.splice(idx, 1);
+    saveProjectList(projectList);
+    renderProjectSelect(wasSelected ? undefined : undefined);
+    renderProjectModalList();
+  }
+
+  function openProjectModal() {
+    renderProjectModalList();
+    document.getElementById('project-modal-overlay').classList.add('show');
+  }
+
+  function closeProjectModal() {
+    document.getElementById('project-modal-overlay').classList.remove('show');
+  }
+
+  document.getElementById('project-modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'project-modal-overlay') closeProjectModal();
+  });
+
+  document.getElementById('project-modal-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addProjectName();
+    }
+  });
+
+  renderProjectSelect(DEFAULT_PROJECT_LIST[0]);
+  // ========= 現場名リスト管理 ここまで =========
+
+  // ========= 氏名リスト管理 =========
+  const NAME_LIST_KEY = 'ky_name_list_v1';
+  const DEFAULT_NAME_LIST = ['船山'];
+
+  function loadNameList() {
+    try {
+      const raw = localStorage.getItem(NAME_LIST_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) {}
+    return DEFAULT_NAME_LIST.slice();
+  }
+
+  function saveNameList(list) {
+    try {
+      localStorage.setItem(NAME_LIST_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  let nameList = loadNameList();
+
+  function buildNameOptions() {
+    let html = '<option value="">選択</option>';
+    nameList.forEach(name => {
+      html += `<option value="${name}">${name}</option>`;
+    });
+    return html;
+  }
+
+  // 氏名プルダウンをリストの最新状態に合わせて再描画（選択済みの値は保持）
+  function renderNameSelects() {
+    const opts = buildNameOptions();
+    document.querySelectorAll('select.name-select').forEach(sel => {
+      const current = sel.value;
+      sel.innerHTML = opts;
+      if (current && nameList.includes(current)) {
+        sel.value = current;
+      } else if (current) {
+        const opt = document.createElement('option');
+        opt.value = current;
+        opt.textContent = current;
+        opt.selected = true;
+        sel.appendChild(opt);
+      }
+    });
+  }
+
+  function renderNameModalList() {
+    const ul = document.getElementById('name-modal-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (nameList.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'company-modal-empty';
+      li.textContent = '登録された氏名がありません';
+      ul.appendChild(li);
+      return;
+    }
+    nameList.forEach((name, idx) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = name;
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'edit-btn';
+      editBtn.textContent = '編集';
+      editBtn.onclick = () => startEditPersonName(li, idx);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'del-btn';
+      delBtn.textContent = '削除';
+      delBtn.onclick = () => deletePersonName(idx);
+
+      const btnWrap = document.createElement('div');
+      btnWrap.style.display = 'flex';
+      btnWrap.style.flex = 'none';
+      btnWrap.appendChild(editBtn);
+      btnWrap.appendChild(delBtn);
+
+      li.appendChild(span);
+      li.appendChild(btnWrap);
+      ul.appendChild(li);
+    });
+  }
+
+  function startEditPersonName(li, idx) {
+    li.innerHTML = '';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'item-edit-input';
+    input.value = nameList[idx];
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'edit-btn';
+    saveBtn.textContent = '保存';
+    saveBtn.onclick = () => finishEditPersonName(idx, input.value);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        finishEditPersonName(idx, input.value);
+      }
+    });
+
+    li.appendChild(input);
+    li.appendChild(saveBtn);
+    input.focus();
+    input.select();
+  }
+
+  function finishEditPersonName(idx, newValue) {
+    const name = newValue.trim();
+    if (!name) {
+      showStatus('氏名を入力してください');
+      renderNameModalList();
+      return;
+    }
+    nameList[idx] = name;
+    saveNameList(nameList);
+    renderNameSelects();
+    renderNameModalList();
+    showStatus('氏名を更新しました');
+  }
+
+  function addPersonName() {
+    const input = document.getElementById('name-modal-input');
+    const name = input.value.trim();
+    if (!name) return;
+    if (nameList.includes(name)) {
+      showStatus('すでに登録されています');
+      input.value = '';
+      return;
+    }
+    nameList.push(name);
+    saveNameList(nameList);
+    renderNameSelects();
+    renderNameModalList();
+    input.value = '';
+    input.focus();
+  }
+
+  function deletePersonName(idx) {
+    const name = nameList[idx];
+    if (!confirm(`「${name}」を削除しますか？`)) return;
+    nameList.splice(idx, 1);
+    saveNameList(nameList);
+    renderNameSelects();
+    renderNameModalList();
+  }
+
+  function openNameModal() {
+    renderNameModalList();
+    document.getElementById('name-modal-overlay').classList.add('show');
+  }
+
+  function closeNameModal() {
+    document.getElementById('name-modal-overlay').classList.remove('show');
+  }
+
+  document.getElementById('name-modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'name-modal-overlay') closeNameModal();
+  });
+
+  document.getElementById('name-modal-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addPersonName();
+    }
+  });
+  // ========= 氏名リスト管理 ここまで =========
   const CHECK_ITEMS = [
     '朝礼に参加しているか。',
     '服装・保護具の点検は良いか。',
@@ -1140,8 +1780,8 @@
         <td class="score-cell"><select data-name="sev2_${i}" data-row="${i}" data-pair="after">${sevOpts}</select></td>
         <td class="score-cell"><select data-name="prob2_${i}" data-row="${i}" data-pair="after">${probOpts}</select></td>
         <td class="score-cell risk-result" id="risk_after_${i}">-</td>
-        <td class="qual-cell"><input type="text" data-name="qual_${i}"></td>
-        <td class="name-cell"><input type="text" data-name="qname_${i}"></td>
+        <td class="qual-cell"><select class="qual-select" data-name="qual_${i}"></select></td>
+        <td class="name-cell"><select class="name-select" data-name="qname_${i}"></select></td>
       `;
       tbody.appendChild(tr);
     }
@@ -1160,6 +1800,11 @@
         ta.focus();
       });
     });
+
+    // 資格等プルダウンの選択肢を描画
+    renderQualSelects();
+    // 氏名プルダウンの選択肢を描画
+    renderNameSelects();
   }
 
   function calcRisk(row, pair) {
