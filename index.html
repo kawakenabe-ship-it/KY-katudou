@@ -83,10 +83,10 @@
   /* タイトル行 */
   .title-row {
     border: 1.5px solid var(--line);
-    padding: 8px 12px;
+    padding: 45px 12px;
     text-align: center;
     font-weight: 700;
-    font-size: 22px;
+    font-size: 24px;
     letter-spacing: 0.6em;
     display: flex;
     align-items: center;
@@ -97,7 +97,7 @@
   .title-row .date-grp {
     display: inline-flex;
     align-items: baseline;
-    font-size: 20px;
+    font-size: 30px;
     letter-spacing: 0;
     margin-right: 1.5em;
   }
@@ -105,21 +105,21 @@
   .title-row input.date-picker {
     border: 1px solid #888;
     border-radius: 4px;
-    font-size: 15px;
+    font-size: 20px;
     font-weight: 600;
     font-family: inherit;
-    padding: 4px 6px;
+    padding: 4px 8px;
     background: #f7f7f7;
     margin-right: 8px;
     cursor: pointer;
-    min-height: 36px;
+    min-height: 46px;
   }
   .title-row input.date-picker:focus { outline: none; background: var(--hover); border-color: #000; }
   .title-row .date-display {
-    font-size: 20px;
+    font-size: 30px;
     font-weight: 700;
     letter-spacing: 0;
-    min-width: 110px;
+    min-width: 140px;
     text-align: left;
   }
 
@@ -127,10 +127,10 @@
   .project-row {
     border: 1.5px solid var(--line);
     border-top: none;
-    padding: 8px 12px;
+    padding: 43px 12px;
     text-align: center;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 19px;
   }
   .project-cell {
     display: flex;
@@ -196,6 +196,10 @@
   }
   .info-table td {
     text-align: left;
+  }
+  .info-table tr.company-row th,
+  .info-table tr.company-row td {
+    padding: 39px 6px;
   }
   .info-table .label-sm {
     letter-spacing: 0.1em;
@@ -407,6 +411,9 @@
     min-height: 40px;
     line-height: 1.4;
   }
+  #work_content {
+    min-height: 78px;
+  }
 
   /* リスクテーブル */
   .risk-table th {
@@ -429,6 +436,10 @@
   .risk-table td.measure-cell {
     text-align: left;
     width: 22%;
+  }
+  .risk-table td.danger-cell textarea,
+  .risk-table td.measure-cell textarea {
+    min-height: 138px;
   }
   .risk-table td.qual-cell,
   .risk-table td.name-cell {
@@ -603,7 +614,7 @@
   body.pdf-rendering .risk-table th { font-size: 9px; padding: 2px !important; }
   body.pdf-rendering .risk-table .h-big { font-size: 10px; }
   body.pdf-rendering .risk-table .h-small { font-size: 8.5px; }
-  body.pdf-rendering .risk-table td { height: 28px !important; padding: 1px !important; }
+  body.pdf-rendering .risk-table td { height: 51px !important; padding: 1px !important; }
   body.pdf-rendering .risk-result { font-size: 10px !important; }
   body.pdf-rendering .check-section { margin-top: 2px; }
   body.pdf-rendering .check-table td.check-label { font-size: 9px; }
@@ -616,7 +627,7 @@
   body.pdf-rendering .footer-table { margin-top: 2px !important; }
   body.pdf-rendering .footer-table td { height: 36px !important; }
   body.pdf-rendering .signature-wrapper { border: 1px solid #000 !important; }
-  body.pdf-rendering .signature-canvas { height: 60px !important; }
+  body.pdf-rendering .signature-canvas { height: 84px !important; }
   body.pdf-rendering .signature-clear-btn { display: none !important; }
   body.pdf-rendering .signature-eraser-btn { display: none !important; }
   body.pdf-rendering .signature-hint { display: none !important; }
@@ -664,13 +675,13 @@
     .risk-table th { font-size: 9px; padding: 2px !important; }
     .risk-table .h-big { font-size: 10px; }
     .risk-table .h-small { font-size: 8.5px; }
-    .risk-table td { height: 28px !important; padding: 1px !important; }
+    .risk-table td { height: 51px !important; padding: 1px !important; }
     .risk-result { font-size: 10px !important; }
 
     /* 確認点検 */
     .check-section { margin-top: 2px; }
     .check-table td.check-label { font-size: 9px; }
-    .check-table td.check-box { font-size: 11px; height: 16px !important; }
+    .check-table td.check-box { font-size: 11px; height: 13px !important; }
 
     /* 凡例 */
     .legend { margin-top: 2px; }
@@ -679,7 +690,7 @@
     .legend .section-title { font-size: 8.5px; padding: 1px 4px; }
 
     /* フッター */
-    .footer-table td { height: 36px !important; }
+    .footer-table td { height: 28px !important; }
 
     /* 改ページ禁止 */
     .sheet, table, tr, .legend, .check-section, .footer-table {
@@ -747,7 +758,7 @@
   .signature-canvas {
     display: block;
     width: 100%;
-    height: 140px;
+    height: 84px;
     background: #fff;
     touch-action: none;
     cursor: crosshair;
@@ -759,13 +770,13 @@
     background: #c62828;
     color: #fff;
     border: none;
-    padding: 6px 12px;
+    padding: 4px 10px;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     border-radius: 3px;
-    min-height: 32px;
+    min-height: 28px;
     z-index: 2;
   }
   .signature-clear-btn:hover { background: #a01818; }
@@ -774,17 +785,17 @@
   .signature-eraser-btn {
     position: absolute;
     top: 6px;
-    right: 86px;
+    right: 76px;
     background: #fff;
     color: #000;
     border: 1.5px solid #000;
-    padding: 6px 12px;
+    padding: 4px 10px;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     border-radius: 3px;
-    min-height: 32px;
+    min-height: 28px;
     z-index: 2;
   }
   .signature-eraser-btn:hover { background: #f0f0f0; }
@@ -799,13 +810,7 @@
     cursor: cell;
   }
   .signature-hint {
-    position: absolute;
-    left: 10px;
-    bottom: 6px;
-    font-size: 11px;
-    color: #999;
-    pointer-events: none;
-    user-select: none;
+    display: none;
   }
   .signature-hint.hidden { display: none; }
 </style>
@@ -843,7 +848,7 @@
 
   <!-- 会社情報 -->
   <table class="info-table">
-    <tr>
+    <tr class="company-row">
       <th>会　社　名</th>
       <td style="width:30%">
         <div class="company-cell">
@@ -858,7 +863,7 @@
       <td><input type="text" id="leader"></td>
     </tr>
     <tr>
-      <th>参 加 者 名<br>（サイン）</th>
+      <th class="sign-label">参加者名<br>（サイン）</th>
       <td colspan="5" class="signature-cell">
         <div class="signature-wrapper">
           <canvas id="signature-canvas" class="signature-canvas"></canvas>
@@ -1081,7 +1086,7 @@
 
 <script>
   const STORAGE_KEY = 'ky_form_data_v3';
-  const RISK_ROW_COUNT = 7;
+  const RISK_ROW_COUNT = 5;
 
   // ========= 会社名リスト管理 =========
   const COMPANY_LIST_KEY = 'ky_company_list_v1';
