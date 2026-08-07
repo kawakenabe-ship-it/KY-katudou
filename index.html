@@ -176,7 +176,7 @@
   }
 
   th, td {
-    border: 1.5px solid var(--line);
+    border: 1px solid var(--line);
     padding: 4px 6px;
     vertical-align: middle;
     text-align: center;
@@ -428,7 +428,7 @@
     font-size: 12px;
     font-weight: 700;
   }
-  .risk-table td {
+  .risk-table > tbody > tr > td {
     padding: 2px;
     height: 50px;
   }
@@ -446,6 +446,15 @@
     text-align: left;
     width: 11%;
   }
+  .risk-table td.check-embed-cell {
+    padding: 0;
+    vertical-align: top;
+    text-align: left;
+  }
+  .risk-table td.check-embed-cell table {
+    margin-top: 0;
+  }
+
   .risk-table .score-cell {
     width: 5%;
   }
@@ -493,13 +502,14 @@
     margin-top: 6px;
   }
   .check-table th {
-    font-size: 12px;
-    padding: 3px 6px;
+    font-size: 13px;
+    padding: 10px 6px;
   }
   .check-table td.check-label {
     text-align: left;
-    font-size: 12px;
-    padding: 3px 6px;
+    font-size: 13px;
+    padding: 16px 8px;
+    line-height: 1.3;
   }
   .check-table td.check-box {
     width: 70px;
@@ -507,7 +517,7 @@
     font-size: 16px;
     user-select: none;
     height: 24px;
-    padding: 2px 6px;
+    padding: 16px 6px;
   }
   .check-table td.check-box.checked {
     font-weight: 700;
@@ -614,11 +624,13 @@
   body.pdf-rendering .risk-table th { font-size: 9px; padding: 2px !important; }
   body.pdf-rendering .risk-table .h-big { font-size: 10px; }
   body.pdf-rendering .risk-table .h-small { font-size: 8.5px; }
-  body.pdf-rendering .risk-table td { height: 51px !important; padding: 1px !important; }
+  body.pdf-rendering .risk-table > tbody > tr > td { height: 51px !important; padding: 1px !important; }
   body.pdf-rendering .risk-result { font-size: 10px !important; }
   body.pdf-rendering .check-section { margin-top: 2px; }
-  body.pdf-rendering .check-table td.check-label { font-size: 9px; }
-  body.pdf-rendering .check-table td.check-box { font-size: 11px; height: 16px !important; }
+  body.pdf-rendering .check-embed-cell { padding: 0 !important; }
+  body.pdf-rendering .check-table th { font-size: 8px !important; padding: 1px 3px !important; }
+  body.pdf-rendering .check-table td.check-label { font-size: 8px !important; padding: 1px 3px !important; line-height: 1.15 !important; }
+  body.pdf-rendering .check-table td.check-box { font-size: 9px !important; height: 10px !important; padding: 1px 3px !important; }
   body.pdf-rendering .legend { margin-top: 2px; }
   body.pdf-rendering .legend-row { gap: 4px; }
   body.pdf-rendering .legend th,
@@ -662,11 +674,17 @@
 
     /* ヘッダ周り圧縮 */
     .form-tag { font-size: 9px; margin-bottom: 1px; }
-    .title-row { font-size: 16px; letter-spacing: 0.4em; padding: 2px 6px; }
-    .title-row .date-grp { font-size: 13px; }
-    .title-row .date-display { font-size: 13px; min-width: 70px; }
-    .project-row { font-size: 13px; padding: 2px 6px; }
-    .project-cell select { font-size: 13px !important; }
+    .title-row { font-size: 22px; letter-spacing: 0.4em; padding-top: 1.325mm !important; padding-bottom: 1.325mm !important; padding-left: 6px; padding-right: 6px; }
+    .title-row .date-grp { font-size: 18px; }
+    .title-row .date-display { font-size: 18px; min-width: 90px; }
+    .project-row { font-size: 17px; padding-top: 1.325mm !important; padding-bottom: 1.325mm !important; padding-left: 6px; padding-right: 6px; }
+    .project-cell select { font-size: 17px !important; }
+    .info-table tr.company-row th,
+    .info-table tr.company-row td { padding-top: 1.625mm !important; padding-bottom: 1.625mm !important; }
+    .info-table tr.work-content-row th,
+    .info-table tr.work-content-row td { padding-top: 1.625mm !important; padding-bottom: 1.625mm !important; }
+    #work_content { font-size: 13px !important; line-height: 1.25 !important; }
+    #company, #leader { font-size: 13px !important; }
 
     /* テーブル全般 */
     th, td { padding: 1px 3px !important; }
@@ -676,13 +694,14 @@
     .risk-table th { font-size: 9px; padding: 2px !important; }
     .risk-table .h-big { font-size: 10px; }
     .risk-table .h-small { font-size: 8.5px; }
-    .risk-table td { height: 51px !important; padding: 1px !important; }
+    .risk-table > tbody > tr > td { height: 51px !important; padding: 1px !important; }
     .risk-result { font-size: 10px !important; }
 
-    /* 確認点検 */
-    .check-section { margin-top: 2px; }
-    .check-table td.check-label { font-size: 9px; }
-    .check-table td.check-box { font-size: 11px; height: 13px !important; }
+    /* 確認点検（リスク表内・資格等/氏名列に埋め込み） */
+    .check-embed-cell { padding: 0 !important; }
+    .check-table th { font-size: 8px !important; padding: 1px 3px !important; }
+    .check-table td.check-label { font-size: 8px !important; padding: 1px 3px !important; line-height: 1.15 !important; }
+    .check-table td.check-box { font-size: 9px !important; height: 10px !important; padding: 1px 3px !important; }
 
     /* 凡例 */
     .legend { margin-top: 2px; }
@@ -721,7 +740,7 @@
     .project-cell select { font-size: 14px; }
     th, td { padding: 3px 2px; font-size: 11px; }
     .risk-table .h-big { font-size: 13px; }
-    .risk-table td { height: 40px; }
+    .risk-table > tbody > tr > td { height: 40px; }
     .info-table th { letter-spacing: 0.1em; font-size: 11px; }
   }
 
@@ -874,7 +893,7 @@
         </div>
       </td>
     </tr>
-    <tr>
+    <tr class="work-content-row">
       <th>作　業　内　容</th>
       <td colspan="5"><textarea id="work_content" rows="2"></textarea></td>
     </tr>
@@ -914,18 +933,7 @@
     <tbody id="risk-rows"></tbody>
   </table>
 
-  <!-- 確認点検 -->
-  <div class="check-section">
-    <table class="check-table">
-      <thead>
-        <tr>
-          <th style="width:75%;">確認点検項目</th>
-          <th>確認欄</th>
-        </tr>
-      </thead>
-      <tbody id="check-rows"></tbody>
-    </table>
-  </div>
+  <!-- 確認点検項目はリスク表内（作業に必要な資格等・氏名列, 3行目以降）に統合 -->
 
   <!-- 凡例 -->
   <div class="legend">
@@ -1769,8 +1777,36 @@
     const dangerOpts = buildPresetOptions(DANGER_PRESETS, '▼ プリセットから選択（危険のポイント）');
     const measureOpts = buildPresetOptions(MEASURE_PRESETS, '▼ プリセットから選択（対策）');
 
+    // 資格等・氏名列は先頭2行のみ通常入力欄とし、
+    // 3〜4行目は見本にならい「確認点検項目」表をrowspanで埋め込む
+    // 5行目は再び通常のプルダウン行に戻す
+    const qualNameStartRow = 3;   // 確認点検項目の開始行
+    const qualNameSpan = 2;       // 確認点検項目が占める行数
+    const qualNameResumeRow = qualNameStartRow + qualNameSpan; // ここから再び通常入力欄
+
     for (let i = 0; i < RISK_ROW_COUNT; i++) {
       const tr = document.createElement('tr');
+      let qualNameHtml = '';
+      if (i < qualNameStartRow || i >= qualNameResumeRow) {
+        qualNameHtml = `
+        <td class="qual-cell"><select class="qual-select" data-name="qual_${i}"></select></td>
+        <td class="name-cell"><select class="name-select" data-name="qname_${i}"></select></td>`;
+      } else if (i === qualNameStartRow) {
+        qualNameHtml = `
+        <td class="check-embed-cell" colspan="2" rowspan="${qualNameSpan}">
+          <table class="check-table">
+            <thead>
+              <tr>
+                <th style="width:75%;">確認点検項目</th>
+                <th>確認欄</th>
+              </tr>
+            </thead>
+            <tbody id="check-rows"></tbody>
+          </table>
+        </td>`;
+      }
+      // qualNameStartRow < i < qualNameResumeRow の行は資格等・氏名セルを出力しない（rowspanで結合済み）
+
       tr.innerHTML = `
         <td class="danger-cell">
           <select class="preset-select" data-target="danger_${i}">${dangerOpts}</select>
@@ -1785,9 +1821,7 @@
         </td>
         <td class="score-cell"><select data-name="sev2_${i}" data-row="${i}" data-pair="after">${sevOpts}</select></td>
         <td class="score-cell"><select data-name="prob2_${i}" data-row="${i}" data-pair="after">${probOpts}</select></td>
-        <td class="score-cell risk-result" id="risk_after_${i}">-</td>
-        <td class="qual-cell"><select class="qual-select" data-name="qual_${i}"></select></td>
-        <td class="name-cell"><select class="name-select" data-name="qname_${i}"></select></td>
+        <td class="score-cell risk-result" id="risk_after_${i}">-</td>${qualNameHtml}
       `;
       tbody.appendChild(tr);
     }
