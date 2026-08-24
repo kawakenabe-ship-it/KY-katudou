@@ -400,6 +400,14 @@
     color: var(--ink);
     min-height: 32px;
   }
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+  select::-ms-expand {
+    display: none;
+  }
   input[type="text"]:focus,
   textarea:focus,
   select:focus {
@@ -581,6 +589,39 @@
   .footer-table th {
     width: 15%;
   }
+  .boss-signature-cell {
+    padding: 3px !important;
+  }
+  .boss-signature-wrapper {
+    height: 100%;
+    min-height: 50px;
+  }
+  .signature-wrapper.boss-signature-wrapper .signature-canvas.boss-signature-canvas {
+    height: 50px;
+  }
+  .boss-eraser-btn {
+    top: 2px;
+    right: 26px;
+    padding: 2px 6px;
+    font-size: 10px;
+    min-height: 20px;
+  }
+  .boss-clear-btn {
+    top: 2px;
+    right: 2px;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    min-height: 16px;
+    font-size: 9px;
+    line-height: 16px;
+  }
+  @media print {
+    .boss-eraser-btn, .boss-clear-btn { display: none !important; }
+  }
+  body.pdf-rendering .boss-eraser-btn,
+  body.pdf-rendering .boss-clear-btn { display: none !important; }
+  body.pdf-rendering .boss-signature-canvas { height: 50px !important; }
 
   /* 印刷・PDF生成時の共通スタイル */
   .pdf-rendering body,
@@ -887,7 +928,6 @@
       <td colspan="5" class="signature-cell">
         <div class="signature-wrapper">
           <canvas id="signature-canvas" class="signature-canvas"></canvas>
-          <button type="button" class="signature-eraser-btn" id="signature-eraser-btn" onclick="toggleEraser()">消しゴム</button>
           <button type="button" class="signature-clear-btn" onclick="clearSignature()">書直す</button>
           <span class="signature-hint" id="signature-hint">ここに参加者全員が順番に手書きでサインしてください</span>
         </div>
@@ -1030,7 +1070,12 @@
     <tbody>
       <tr>
         <td><textarea id="notes" rows="3"></textarea></td>
-        <td><input type="text" id="boss"></td>
+        <td class="boss-signature-cell">
+          <div class="signature-wrapper boss-signature-wrapper">
+            <canvas id="boss-signature-canvas" class="signature-canvas boss-signature-canvas"></canvas>
+            <button type="button" class="signature-clear-btn boss-clear-btn" onclick="sigPads.boss.clear()">✕</button>
+          </div>
+        </td>
         <td><input type="text" id="staff"></td>
       </tr>
     </tbody>
@@ -1902,6 +1947,7 @@
     });
     // 手書きサインを画像データとして含める
     data.signature_image = getSignatureDataUrl();
+    data.boss_signature_image = sigPads.boss ? sigPads.boss.getDataUrl() : '';
     return data;
   }
 
@@ -1929,10 +1975,13 @@
       restoreSignatureFromDataUrl(data.signature_image);
     } else {
       // データが無ければクリア
-      if (sigCtx) {
-        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-        sigHasInk = false;
-        showSigHint();
+      if (sigPads.participant) sigPads.participant.reset();
+    }
+    if (sigPads.boss) {
+      if (data.boss_signature_image) {
+        sigPads.boss.restoreFromDataUrl(data.boss_signature_image);
+      } else {
+        sigPads.boss.reset();
       }
     }
     // 日付表示を更新
@@ -1972,200 +2021,213 @@
     }
   }
 
-  // ========= 手書きサイン機能 =========
-  let sigCanvas, sigCtx;
-  let sigDrawing = false;
-  let sigLastX = 0, sigLastY = 0;
-  let sigHasInk = false;
-  let sigEraserMode = false;     // 消しゴムモードのON/OFF
-  const ERASER_SIZE = 20;        // 消しゴムのサイズ（px）
+  // ========= 手書きサイン機能（複数インスタンス対応） =========
+  const ERASER_SIZE = 20; // 消しゴムのサイズ（px）
+  const sigPads = {}; // { participant: {...}, boss: {...} }
+
+  function createSignaturePad(key, canvasId, hintId, eraserBtnId) {
+    const pad = {
+      canvas: null,
+      ctx: null,
+      drawing: false,
+      lastX: 0,
+      lastY: 0,
+      hasInk: false,
+      eraserMode: false,
+      hintId: hintId,
+      eraserBtnId: eraserBtnId,
+
+      init() {
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => {
+          const dataUrl = this.canvas.toDataURL();
+          this.resize();
+          if (this.hasInk) this.restoreFromDataUrl(dataUrl);
+        });
+        this._setPenStyle();
+
+        this.canvas.addEventListener('mousedown', (e) => this.start(e));
+        this.canvas.addEventListener('mousemove', (e) => this.draw(e));
+        this.canvas.addEventListener('mouseup', () => this.end());
+        this.canvas.addEventListener('mouseleave', () => this.end());
+
+        this.canvas.addEventListener('touchstart', (e) => this._touchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this._touchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', () => this.end());
+        this.canvas.addEventListener('touchcancel', () => this.end());
+      },
+
+      _setPenStyle() {
+        this.ctx.strokeStyle = '#000';
+        this.ctx.lineWidth = 2;
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+      },
+
+      resize() {
+        const rect = this.canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+        this.ctx.scale(dpr, dpr);
+        this._setPenStyle();
+      },
+
+      _getPos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      },
+
+      start(e) {
+        this.drawing = true;
+        const pos = this._getPos(e);
+        this.lastX = pos.x;
+        this.lastY = pos.y;
+        if (this.eraserMode) {
+          this._eraseAt(pos.x, pos.y);
+        } else {
+          this.ctx.beginPath();
+          this.ctx.arc(pos.x, pos.y, 1, 0, Math.PI * 2);
+          this.ctx.fillStyle = '#000';
+          this.ctx.fill();
+          this._hideHint();
+          this.hasInk = true;
+        }
+      },
+
+      draw(e) {
+        if (!this.drawing) return;
+        const pos = this._getPos(e);
+        if (this.eraserMode) {
+          this._eraseLine(this.lastX, this.lastY, pos.x, pos.y);
+        } else {
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.lastX, this.lastY);
+          this.ctx.lineTo(pos.x, pos.y);
+          this.ctx.stroke();
+        }
+        this.lastX = pos.x;
+        this.lastY = pos.y;
+      },
+
+      _eraseAt(x, y) {
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'destination-out';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, ERASER_SIZE / 2, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+      },
+
+      _eraseLine(x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const step = Math.max(1, ERASER_SIZE / 4);
+        const steps = Math.max(1, Math.ceil(dist / step));
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          this._eraseAt(x1 + dx * t, y1 + dy * t);
+        }
+      },
+
+      end() {
+        this.drawing = false;
+      },
+
+      _touchStart(e) {
+        e.preventDefault();
+        const t = e.touches[0];
+        this.start({ clientX: t.clientX, clientY: t.clientY });
+      },
+
+      _touchMove(e) {
+        e.preventDefault();
+        const t = e.touches[0];
+        this.draw({ clientX: t.clientX, clientY: t.clientY });
+      },
+
+      _hideHint() {
+        if (!this.hintId) return;
+        const hint = document.getElementById(this.hintId);
+        if (hint) hint.classList.add('hidden');
+      },
+
+      _showHint() {
+        if (!this.hintId) return;
+        const hint = document.getElementById(this.hintId);
+        if (hint) hint.classList.remove('hidden');
+      },
+
+      clear() {
+        if (!this.ctx) return;
+        if (!confirm('サインをすべて消去しますか？')) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.hasInk = false;
+        this._showHint();
+        if (this.eraserMode) this.toggleEraser();
+        showStatus('サインを消去しました');
+      },
+
+      // 内部からの無確認クリア（フォーム全体クリア時などに使用）
+      reset() {
+        if (!this.ctx) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.hasInk = false;
+        this._showHint();
+      },
+
+      toggleEraser() {
+        this.eraserMode = !this.eraserMode;
+        const btn = this.eraserBtnId ? document.getElementById(this.eraserBtnId) : null;
+        if (this.eraserMode) {
+          if (btn) { btn.classList.add('active'); btn.textContent = btn.dataset.eraserLabel || '✏️'; }
+          this.canvas.classList.add('eraser-mode');
+        } else {
+          if (btn) { btn.classList.remove('active'); btn.textContent = btn.dataset.penLabel || '消しゴム'; }
+          this.canvas.classList.remove('eraser-mode');
+        }
+      },
+
+      getDataUrl() {
+        if (!this.canvas || !this.hasInk) return '';
+        return this.canvas.toDataURL('image/png');
+      },
+
+      restoreFromDataUrl(dataUrl) {
+        if (!dataUrl || !this.ctx) {
+          this.hasInk = false;
+          this._showHint();
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          const rect = this.canvas.getBoundingClientRect();
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          this.ctx.drawImage(img, 0, 0, rect.width, rect.height);
+          this.hasInk = true;
+          this._hideHint();
+        };
+        img.src = dataUrl;
+      }
+    };
+    sigPads[key] = pad;
+    return pad;
+  }
 
   function initSignature() {
-    sigCanvas = document.getElementById('signature-canvas');
-    if (!sigCanvas) return;
-    sigCtx = sigCanvas.getContext('2d');
-
-    // Canvasの実サイズをCSSサイズに合わせる（高解像度対応）
-    resizeSignatureCanvas();
-    window.addEventListener('resize', () => {
-      // リサイズ時に既存の絵を保持
-      const dataUrl = sigCanvas.toDataURL();
-      resizeSignatureCanvas();
-      if (sigHasInk) restoreSignatureFromDataUrl(dataUrl);
-    });
-
-    // ペン設定
-    sigCtx.strokeStyle = '#000';
-    sigCtx.lineWidth = 2;
-    sigCtx.lineCap = 'round';
-    sigCtx.lineJoin = 'round';
-
-    // マウスイベント
-    sigCanvas.addEventListener('mousedown', sigStart);
-    sigCanvas.addEventListener('mousemove', sigDraw);
-    sigCanvas.addEventListener('mouseup', sigEnd);
-    sigCanvas.addEventListener('mouseleave', sigEnd);
-
-    // タッチイベント（スマホ・タブレット対応）
-    sigCanvas.addEventListener('touchstart', sigTouchStart, { passive: false });
-    sigCanvas.addEventListener('touchmove', sigTouchMove, { passive: false });
-    sigCanvas.addEventListener('touchend', sigEnd);
-    sigCanvas.addEventListener('touchcancel', sigEnd);
+    createSignaturePad('participant', 'signature-canvas', 'signature-hint', null).init();
+    createSignaturePad('boss', 'boss-signature-canvas', null, null).init();
   }
 
-  function resizeSignatureCanvas() {
-    const rect = sigCanvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    sigCanvas.width = rect.width * dpr;
-    sigCanvas.height = rect.height * dpr;
-    sigCtx.scale(dpr, dpr);
-    sigCtx.strokeStyle = '#000';
-    sigCtx.lineWidth = 2;
-    sigCtx.lineCap = 'round';
-    sigCtx.lineJoin = 'round';
-  }
-
-  function getSigPos(e) {
-    const rect = sigCanvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
-
-  function sigStart(e) {
-    sigDrawing = true;
-    const pos = getSigPos(e);
-    sigLastX = pos.x;
-    sigLastY = pos.y;
-    if (sigEraserMode) {
-      // 消しゴム：その地点を消す
-      eraseAt(pos.x, pos.y);
-    } else {
-      // ペン：点を打つ（タップだけでも見えるように）
-      sigCtx.beginPath();
-      sigCtx.arc(pos.x, pos.y, 1, 0, Math.PI * 2);
-      sigCtx.fillStyle = '#000';
-      sigCtx.fill();
-      hideSigHint();
-      sigHasInk = true;
-    }
-  }
-
-  function sigDraw(e) {
-    if (!sigDrawing) return;
-    const pos = getSigPos(e);
-    if (sigEraserMode) {
-      // 消しゴム：始点〜終点の線分上を消す（飛び石にならないように補間）
-      eraseLine(sigLastX, sigLastY, pos.x, pos.y);
-    } else {
-      // ペン：線を引く
-      sigCtx.beginPath();
-      sigCtx.moveTo(sigLastX, sigLastY);
-      sigCtx.lineTo(pos.x, pos.y);
-      sigCtx.stroke();
-    }
-    sigLastX = pos.x;
-    sigLastY = pos.y;
-  }
-
-  // 指定座標を中心に円形に消去
-  function eraseAt(x, y) {
-    sigCtx.save();
-    sigCtx.globalCompositeOperation = 'destination-out';
-    sigCtx.beginPath();
-    sigCtx.arc(x, y, ERASER_SIZE / 2, 0, Math.PI * 2);
-    sigCtx.fill();
-    sigCtx.restore();
-  }
-
-  // 線分上を連続して消去（マウスを速く動かしても隙間ができないように）
-  function eraseLine(x1, y1, x2, y2) {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const step = Math.max(1, ERASER_SIZE / 4);
-    const steps = Math.max(1, Math.ceil(dist / step));
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      eraseAt(x1 + dx * t, y1 + dy * t);
-    }
-  }
-
-  function sigEnd() {
-    sigDrawing = false;
-  }
-
-  function sigTouchStart(e) {
-    e.preventDefault();
-    const t = e.touches[0];
-    sigStart({ clientX: t.clientX, clientY: t.clientY });
-  }
-
-  function sigTouchMove(e) {
-    e.preventDefault();
-    const t = e.touches[0];
-    sigDraw({ clientX: t.clientX, clientY: t.clientY });
-  }
-
-  function hideSigHint() {
-    const hint = document.getElementById('signature-hint');
-    if (hint) hint.classList.add('hidden');
-  }
-
-  function showSigHint() {
-    const hint = document.getElementById('signature-hint');
-    if (hint) hint.classList.remove('hidden');
-  }
-
-  function clearSignature() {
-    if (!sigCtx) return;
-    if (!confirm('サインをすべて消去しますか？')) return;
-    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-    sigHasInk = false;
-    showSigHint();
-    // 消しゴムモードもOFFに戻す
-    if (sigEraserMode) toggleEraser();
-    showStatus('サインを消去しました');
-  }
-
-  // 消しゴムモードのON/OFF切り替え
-  function toggleEraser() {
-    sigEraserMode = !sigEraserMode;
-    const btn = document.getElementById('signature-eraser-btn');
-    if (sigEraserMode) {
-      btn.classList.add('active');
-      btn.textContent = '✏️ ペンに戻す';
-      sigCanvas.classList.add('eraser-mode');
-    } else {
-      btn.classList.remove('active');
-      btn.textContent = '消しゴム';
-      sigCanvas.classList.remove('eraser-mode');
-    }
-  }
-
-  function getSignatureDataUrl() {
-    if (!sigCanvas || !sigHasInk) return '';
-    return sigCanvas.toDataURL('image/png');
-  }
-
-  function restoreSignatureFromDataUrl(dataUrl) {
-    if (!dataUrl || !sigCtx) {
-      sigHasInk = false;
-      showSigHint();
-      return;
-    }
-    const img = new Image();
-    img.onload = () => {
-      const rect = sigCanvas.getBoundingClientRect();
-      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-      // 表示サイズに合わせて描画（dpr スケール済みのコンテキストなのでCSSサイズで指定）
-      sigCtx.drawImage(img, 0, 0, rect.width, rect.height);
-      sigHasInk = true;
-      hideSigHint();
-    };
-    img.src = dataUrl;
-  }
+  // 旧関数名との互換用（参加者サイン欄のボタンから呼ばれる）
+  function clearSignature() { sigPads.participant.clear(); }
+  function toggleEraser() { sigPads.participant.toggleEraser(); }
+  function getSignatureDataUrl() { return sigPads.participant.getDataUrl(); }
+  function restoreSignatureFromDataUrl(dataUrl) { sigPads.participant.restoreFromDataUrl(dataUrl); }
   // ========= 手書きサイン ここまで =========
 
   // ========= PDF保存 =========
@@ -2257,11 +2319,8 @@
       calcRisk(i, 'after');
     }
     // 手書きサインもクリア
-    if (sigCtx) {
-      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-      sigHasInk = false;
-      showSigHint();
-    }
+    if (sigPads.participant) sigPads.participant.reset();
+    if (sigPads.boss) sigPads.boss.reset();
     // 日付は今日に戻す
     const t = new Date();
     const y = t.getFullYear();
