@@ -626,6 +626,7 @@
   .pdf-rendering body,
   body.pdf-rendering { background: #fff; font-size: 8.5px; line-height: 1.2; }
   body.pdf-rendering .toolbar { display: none; }
+  body.pdf-rendering .company-manage-btn { display: none !important; }
   body.pdf-rendering .status-msg { display: none !important; }
   body.pdf-rendering .sheet {
     box-shadow: none;
@@ -771,6 +772,15 @@
     @page { size: A4 landscape; margin: 5mm; }
   }
 
+  /* 画面表示（幅1150px以上）：印刷と同じく、日付は左側・タイトルは中央に配置
+     （幅が狭い画面は従来どおり、日付とタイトルを横並びで中央寄せ） */
+  @media screen and (min-width: 1150px) {
+    .title-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+    .title-row .date-grp { justify-self: center; margin-right: 0; }
+    .title-row .date-display { min-width: 0; }
+    .title-row > span:not(.date-grp) { padding-left: 0.6em; }
+  }
+
   /* モバイル */
   @media (max-width: 700px) {
     .toolbar-title { width: 100%; }
@@ -788,7 +798,8 @@
     .info-table th { letter-spacing: 0.1em; font-size: 11px; }
   }
 
-  @media (hover: none) and (pointer: coarse) {
+  /* タッチ端末の入力しやすさ用（画面表示のみ。印刷には適用しない） */
+  @media screen and (hover: none) and (pointer: coarse) {
     input, select, textarea { font-size: 16px !important; }
   }
 
